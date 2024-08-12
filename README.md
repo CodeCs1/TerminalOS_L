@@ -6,11 +6,12 @@ If you want to see it, check here: [Old project github link](https://github.com/
 > [!NOTE]
 > This should be worked on all PC platform[^1]
 
-<h4>Thing added:</h4>
-    - [x] A custom ATA PIO Driver.<br>
-    - [x] GUI forked from Win 1.0.<sup>Just done the basic</sup><br>
 
-<h4>Thing _Will_ be added in the future:</h4>
+* Thing added:
+    - [x] A custom ATA PIO Driver.
+    - [x] GUI forked from Win 1.0.<sup>Just done the basic</sup>
+
+* Thing _Will_ be added in the future:
     - [ ] Network Support<br>
     - [ ] EXT3/EXT4, NTFS File System Support.<br>
     - [ ] A VFS replacement
