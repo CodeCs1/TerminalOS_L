@@ -7,8 +7,8 @@ If you want to see it, check here: [Old project github link](https://github.com/
 > This should be worked on all PC platform[^1]
 
 <h4>Thing added:</h4>
-    - [X] A custom ATA PIO Driver.<br>
-    - [X] GUI forked from Win 1.0.<sup>Just done the basic</sup><br>
+    - [x] A custom ATA PIO Driver.<br>
+    - [x] GUI forked from Win 1.0.<sup>Just done the basic</sup><br>
 
 <h4>Thing _Will_ be added in the future:</h4>
     - [ ] Network Support<br>
