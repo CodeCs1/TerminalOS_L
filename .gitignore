@@ -1,0 +1,7 @@
+*.log
+*.img
+*.vmdk
+bin/*
+obj/*
+*.c
+ext2reader
