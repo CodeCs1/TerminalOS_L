@@ -54,6 +54,8 @@ namespace TerminalOS_L.FileSystemR {
     public class GPT {
         private readonly PMBR pmbr;
         public static PTH pth;
+        public static PartitionType[] type;
+
         public GPT(ATA ata) {
             byte[] PMBR_data = new byte[512];
             ata.Read28(0, 512, ref PMBR_data);
@@ -80,6 +82,26 @@ namespace TerminalOS_L.FileSystemR {
             pth.LastUsableBlock = GPTReader.ReadUInt64();
             pth.GUID = GPTReader.ReadBytes(16);
             pth.StartLBA = GPTReader.ReadUInt64();
+            // TODO: Fix the litmitation.
+            // Although total partition in GPT is unlimited, it's hard for developor to allocate an Byte array
+            //Litmit GPT Drive: 32
+            byte[] PT = new byte[512*64]; 
+            ata.Read28(2, 512*64, ref PT);
+            type = new PartitionType[32];
+            BinaryReader PartitionEntry =new(new MemoryStream(PT));
+            int PartitionCount=0;
+            for (;PartitionCount<32;PartitionCount++) {
+                type[PartitionCount].PartitionTypeGUID = PartitionEntry.ReadBytes(16);
+                type[PartitionCount].UniquePartitionGUID = PartitionEntry.ReadBytes(16);
+                type[PartitionCount].StartingLBA = PartitionEntry.ReadUInt64();
+                type[PartitionCount].EndingLBA = PartitionEntry.ReadUInt64();
+                type[PartitionCount].Attributes = PartitionEntry.ReadUInt64();
+                type[PartitionCount].PartitionName = PartitionEntry.ReadBytes(72);
+                if (type[PartitionCount].StartingLBA == ulong.MaxValue && type[PartitionCount].EndingLBA == ulong.MaxValue) { // Why?
+                    break;
+                }
+            }
+            Message.Send_Log($"Total GPT Partition: {PartitionCount+1}");
         }
 
         public static bool ISGpt() {

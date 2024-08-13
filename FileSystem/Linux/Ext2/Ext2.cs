@@ -1,18 +1,12 @@
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 using TerminalOS_L.Driver;
 
-namespace TerminalOS_L.FileSystemR.Linux {
+// Some resource that help me in making this driver:
+// https://wiki.osdev.org/Ext2
 
-    public struct EXT2_file {
-        public Inode inode;
-        public uint pos;
-        public byte block_index;
-        public byte[] buffer;
-        public uint curr_pos;
-    }
+namespace TerminalOS_L.FileSystemR.Linux {
     public class Ext2 : VFS {
         public ATA ata;
         public new uint LBA_Start;
@@ -128,9 +122,21 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 Console.ReadKey();
 
             }
-            //int InodeTableStart = (int)(esb.SizeOfEachINode*spb.NumberofInodes/ (1024<<(int)spb.BlockSize));
-            //builder.AppendFormat("InodeTableStart: {0}\n",InodeTableStart);
+            int InodeTableStart = 5;
+            builder.AppendFormat("InodeTableStart: {0}\n",InodeTableStart);
             Console.WriteLine(builder.ToString());
+        }
+        private void BlockGroup(int index,SuperBlockEnum spb,
+        ExtendedSuperBlock esb) {
+            int block_gr = (int)((index-1)/spb.NumberofInodes);
+            int index_1 = (int)((index-1)%spb.NumberofInodes);
+            int contain=0;
+            if (spb.MajorPortion >= 1) {
+                contain = index_1*esb.SizeOfEachINode/(1024<<(int)spb.BlockSize);
+            } else {
+                contain = index_1*128/(1024<<(int)spb.BlockSize);
+            }
+
         }
     }
 }

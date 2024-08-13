@@ -10,7 +10,7 @@ namespace TerminalOS_L {
         {
             //mount ext2 IDE_0 1
             //mount fat32 IDE_0 2 -l
-            if (args.Length < 4) {
+            if (args.Length < 3) {
                 Console.WriteLine("Usage: mount <FileSystem> IDE_<0->4> Partition_number(1->4)");
                 return "Less argsuments";
             }
@@ -35,23 +35,27 @@ namespace TerminalOS_L {
             }
             ata.Identify();
             _ = new GPT(ata);
-            if (GPT.ISGpt()) {
-                Message.Send_Error("GPT hasn't support yet!");
-                return "GPT not support!";
+            uint LBA_Start;
+            if (GPT.ISGpt())
+            {
+                LBA_Start = (uint)GPT.type[Convert.ToInt32(args[2]) - 1].StartingLBA;
             }
-            MBR mbr = new(ata);
-            mbr.List();
-            if (Convert.ToInt32(args[2]) > 3) {
-                Message.Send_Error("Only support 4 partitions!");
-                return "Out of partition";
+            else // MBR Partition only support 4 Partitions
+            {
+                if (Convert.ToInt32(args[2]) > 3) {
+                    Message.Send_Error("Only support 4 partitions!");
+                    return "Out of partition";
+                }
+                MBR mbr = new(ata);
+                LBA_Start = mbr.mbr_.Partitions[Convert.ToInt32(args[2]) - 1].LBAStart;
             }
             switch(type) {
                 case "ext2":
-                    var e = new FileSystemR.Linux.Ext2(ata, mbr.mbr_.Partitions[Convert.ToInt32(args[2])-1].LBAStart);
+                    var e = new FileSystemR.Linux.Ext2(ata, /*mbr.mbr_.Partitions[Convert.ToInt32(args[2])-1].LBAStart*/ LBA_Start);
                     e.Impl();
                     break;
                 case "fat32":
-                    _ = new FileSystemR.Microsoft.FAT32.FAT32(ata,(int)mbr.mbr_.Partitions[Convert.ToInt64(args[2])-1].LBAStart);
+                    _ = new FileSystemR.Microsoft.FAT32.FAT32(ata,(int)LBA_Start);
                     break;
             }
             return base.Execute(args);
