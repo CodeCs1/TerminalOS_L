@@ -21,12 +21,11 @@ dotnet build
     - [x] A custom ATA PIO Driver.
     - [x] GUI forked from Win 1.0.<sup>Just done the basic</sup>
     - [x] MBR and GPT Partition table
-    - [ ] Network Support<br>
-    - [ ] EXT3/EXT4, NTFS File System Support.<br>
+    - [x] Ext2, FAT32 File System Support
+    - [ ] Network Support
+    - [ ] EXT3/EXT4, NTFS File System Support.
     - [ ] A VFS replacement
 
-- Developmenting:
-> EXT2/FAT32 File System Driver.
 
 [^1]: I don't know if Cosmos C# is support MacOS
-[^2]: User Kit is ok, but I recommend using DevKit for better performance or something?
+[^2]: UserKit is ok, but I recommend using DevKit for better performance or something.
