@@ -41,6 +41,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 public uint Reserved;
             }
         }
+        public uint OS_Value1;
         [MarshalAs(UnmanagedType.ByValArray,SizeConst =12)]
         public uint[] DirectBlockPointer;
         public uint SinglyIndirectBlockPointer;
@@ -76,5 +77,6 @@ namespace TerminalOS_L.FileSystemR.Linux {
             }
         }
 
+        public uint OS_Value2;
     }
 }

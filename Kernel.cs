@@ -2,6 +2,7 @@
 using System.Text;
 using Cosmos.HAL;
 using TerminalOS_L.FileSystemR.Microsoft;
+using TerminalOS_L.System;
 using Sys = Cosmos.System;
 
 namespace TerminalOS_L
@@ -88,7 +89,6 @@ namespace TerminalOS_L
                         pass += info.KeyChar;
                     }
             }while(k != ConsoleKey.Enter);
-
         }
         
         protected override void Run()

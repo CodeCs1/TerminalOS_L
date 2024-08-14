@@ -3,12 +3,13 @@ using System.IO;
 using System.Text;
 using TerminalOS_L.Driver;
 
-// Some resource that help me in making this driver:
+// Some resource that helpping me in making this driver:
 // https://wiki.osdev.org/Ext2
 
 namespace TerminalOS_L.FileSystemR.Linux {
     public class Ext2 : VFS {
         public ATA ata;
+        public Inode inode;
         public new uint LBA_Start;
         public Ext2(ATA ata,uint initLBA) : base(ata,initLBA) {
             this.ata = ata;
@@ -18,6 +19,9 @@ namespace TerminalOS_L.FileSystemR.Linux {
         
         public int Offset(int block,int size) {
             return 1024+(block-1)*size;
+        }
+        private static uint Block2LBA(uint block_no) {
+            return block_no*2;
         }
 
         public override void Impl()
@@ -97,6 +101,8 @@ namespace TerminalOS_L.FileSystemR.Linux {
             BlockGroupDescriptor[] bgd=new BlockGroupDescriptor[bgdsz];
             byte[] blockdescriptor = new byte[32*bgdsz];
             ata.Read28((int)(LBA_Start+4), 32*bgdsz,ref blockdescriptor);
+            Kernel.PrintByteArray(blockdescriptor);
+            Console.ReadLine();
             r = new BinaryReader(new MemoryStream(blockdescriptor));
             for (int i=0;i<bgdsz;i++) {
                 bgd[i].BlockBitmap=r.ReadUInt32();
@@ -119,24 +125,60 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 build2.AppendFormat("FreeInodeCount: {0}\n", bgd[i].FreeInodeCount);
                 build2.AppendFormat("UsedDirCount: {0}\n",   bgd[i].UsedDirCount);
                 Console.WriteLine(build2.ToString());
-                Console.ReadKey();
-
             }
-            int InodeTableStart = 5;
-            builder.AppendFormat("InodeTableStart: {0}\n",InodeTableStart);
-            Console.WriteLine(builder.ToString());
+            StartIndexTable(bgd[0],esb,spb);
         }
-        private void BlockGroup(int index,SuperBlockEnum spb,
-        ExtendedSuperBlock esb) {
-            int block_gr = (int)((index-1)/spb.NumberofInodes);
-            int index_1 = (int)((index-1)%spb.NumberofInodes);
-            int contain=0;
-            if (spb.MajorPortion >= 1) {
-                contain = index_1*esb.SizeOfEachINode/(1024<<(int)spb.BlockSize);
-            } else {
-                contain = index_1*128/(1024<<(int)spb.BlockSize);
-            }
 
+
+
+
+        private void StartIndexTable(BlockGroupDescriptor blockGroup,ExtendedSuperBlock esb,
+        SuperBlockEnum spb) {
+            uint InodeTable = Block2LBA(blockGroup.InodeTable);
+            uint count;
+            if (spb.MajorPortion>=1) {
+                count = esb.SizeOfEachINode;
+            } else {
+                count = 128;
+            }
+            uint TotalInodesTable = (uint)(spb.TotalInodes*count/(1024<<(int)spb.BlockSize));
+            //Console.WriteLine($"Total Inode Table: {TotalInodesTable}");
+            byte[] inode = new byte[TotalInodesTable];
+            ata.Read28((int)((int)LBA_Start + InodeTable), (int)TotalInodesTable,ref inode);
+            var INodeRead = new BinaryReader(new MemoryStream(inode));
+            Inode[] Inodes = new Inode[TotalInodesTable];
+            for (int i=0;i<3;i++) {
+                Inodes[i].TypeAndPermissions = INodeRead.ReadUInt16();
+                Inodes[i].UserID = INodeRead.ReadUInt16();
+                Inodes[i].SizeinBytes = INodeRead.ReadUInt32();
+                Inodes[i].LastAccessTime = INodeRead.ReadUInt32();
+                Inodes[i].CreationTime = INodeRead.ReadUInt32();
+                Inodes[i].LastModificationTime = INodeRead.ReadUInt32();
+                Inodes[i].DeletionTime = INodeRead.ReadUInt32();
+                Inodes[i].GroupID = INodeRead.ReadUInt16();
+                Inodes[i].CountofHardLinks = INodeRead.ReadUInt16();
+                Inodes[i].CountofDiskSectors = INodeRead.ReadUInt32();
+                Inodes[i].Flags = INodeRead.ReadUInt32();
+                Inodes[i].OS_Value1 = INodeRead.ReadUInt32();
+                for (int j=0;j<12;j++) {
+                    Inodes[i].DirectBlockPointer[j] = INodeRead.ReadUInt32();
+                }
+                Inodes[i].SinglyIndirectBlockPointer = INodeRead.ReadUInt32();
+                Inodes[i].DoublyIndirectBlockPointer = INodeRead.ReadUInt32();
+                Inodes[i].TriplyIndirectBlockPointer = INodeRead.ReadUInt32();
+                Inodes[i].GenerationNumber = INodeRead.ReadUInt32();
+                Inodes[i].ExtendedAttributeBlock = INodeRead.ReadUInt32();
+                Inodes[i].UpperFileSize= INodeRead.ReadUInt32();
+                Inodes[i].BlockAddr = INodeRead.ReadUInt32();
+                Inodes[i].OS_Value2 = INodeRead.ReadUInt32();
+                /*var build = new StringBuilder();
+                build.AppendFormat("Type: {0}\n", Inodes[i].TypeAndPermissions);
+                build.AppendFormat("UserID: {0}\n", Inodes[i].UserID);
+                build.AppendFormat("Size: {0}\n", Inodes[i].SizeinBytes);
+                Console.WriteLine(build.ToString());
+                Console.ReadLine();
+                */
+            }
         }
     }
 }
