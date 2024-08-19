@@ -84,7 +84,7 @@ namespace TerminalOS_L.FileSystemR {
             pth.StartLBA = GPTReader.ReadUInt64();
             // TODO: Fix the litmitation.
             // Although total partition in GPT is unlimited, it's hard for developor to allocate an Byte array
-            //Litmit GPT Drive: 32
+            //Limit GPT Drive: 32
             byte[] PT = new byte[512*64]; 
             ata.Read28(2, 512*64, ref PT);
             type = new PartitionType[32];
