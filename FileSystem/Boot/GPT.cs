@@ -97,11 +97,11 @@ namespace TerminalOS_L.FileSystemR {
                 type[PartitionCount].EndingLBA = PartitionEntry.ReadUInt64();
                 type[PartitionCount].Attributes = PartitionEntry.ReadUInt64();
                 type[PartitionCount].PartitionName = PartitionEntry.ReadBytes(72);
+                //Sometime binaryreader read byte is max of uint type.
                 if (type[PartitionCount].StartingLBA == ulong.MaxValue && type[PartitionCount].EndingLBA == ulong.MaxValue) { // Why?
                     break;
                 }
             }
-            Message.Send_Log($"Total GPT Partition: {PartitionCount+1}");
         }
 
         public static bool ISGpt() {

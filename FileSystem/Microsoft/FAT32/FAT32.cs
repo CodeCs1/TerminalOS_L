@@ -45,9 +45,15 @@ namespace TerminalOS_L.FileSystemR.Microsoft.FAT32
             builder.AppendFormat("Fatsz32: {0}\n",br.SectorsPerFAT);
             Console.WriteLine(builder.ToString());
 
-            byte[] Fat = new byte[br.SectorsPerFAT];
-            ata.Read28(LBA_Start + br.ReservedSectors, (int)br.SectorsPerFAT, ref Fat);
-            Kernel.PrintByteArray(Fat);
+            int Root_Sectors = LBA_Start+br.ReservedSectors;
+            uint FatSz = br.SectorsPerFAT;
+            uint Data_Start = (uint)(Root_Sectors +FatSz*br.NumberofFat);
+            uint Root_Start = (uint)(Data_Start +br.NumberofSectors*(br.NumberofRoot-2));
+            Console.WriteLine("Root Start: "+Root_Start);
+            /*byte[] Root_Dir = new byte[512];
+            ata.Read28(Root_Sectors,512,ref Root_Dir);
+            Kernel.PrintByteArray(Root_Dir);*/
+
         }
     }
 }

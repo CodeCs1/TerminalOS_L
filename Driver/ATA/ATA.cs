@@ -197,6 +197,9 @@ namespace TerminalOS_L.Driver {
             }
             Delay40NS();
         }
+        ///<summary>
+        /// Flushes the ATA device by sending a flush command and waiting for the operation to complete.
+        /// </summary>
 
         private void Flush() {
             ATARegisters.DriveRegisters = (byte)(IsMaster ? 0xe0:0xf0);

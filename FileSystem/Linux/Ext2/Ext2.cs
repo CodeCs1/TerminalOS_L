@@ -126,13 +126,14 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 build2.AppendFormat("UsedDirCount: {0}\n",   bgd[i].UsedDirCount);
                 Console.WriteLine(build2.ToString());
             }
-            StartIndexTable(bgd[0],esb,spb);
+            StartIndexTable(2,bgd[0],esb,spb);
         }
 
 
 
 
-        private void StartIndexTable(BlockGroupDescriptor blockGroup,ExtendedSuperBlock esb,
+        private void StartIndexTable(int index,
+            BlockGroupDescriptor blockGroup,ExtendedSuperBlock esb,
         SuperBlockEnum spb) {
             uint InodeTable = Block2LBA(blockGroup.InodeTable);
             uint count;
@@ -141,13 +142,16 @@ namespace TerminalOS_L.FileSystemR.Linux {
             } else {
                 count = 128;
             }
-            uint TotalInodesTable = (uint)(spb.TotalInodes*count/(1024<<(int)spb.BlockSize));
-            //Console.WriteLine($"Total Inode Table: {TotalInodesTable}");
-            byte[] inode = new byte[TotalInodesTable];
-            ata.Read28((int)((int)LBA_Start + InodeTable), (int)TotalInodesTable,ref inode);
-            var INodeRead = new BinaryReader(new MemoryStream(inode));
-            Inode[] Inodes = new Inode[TotalInodesTable];
-            for (int i=0;i<3;i++) {
+            byte[] buffer = new byte[count];
+            ata.Read28((int)(LBA_Start+InodeTable), (int)count,ref buffer);
+            Kernel.PrintByteArray(buffer);
+            var INodeRead = new BinaryReader(new MemoryStream(buffer));
+            Inode[] Inodes = new Inode[10]; // TODO: Fix the limitation.
+            for (int i=0;i<4;i++) {
+                Inodes[i].DirectBlockPointer=new uint[12];
+            }
+            for (int i=0;i<4;i++) {
+                Inodes[i].DirectBlockPointer = new uint[12];
                 Inodes[i].TypeAndPermissions = INodeRead.ReadUInt16();
                 Inodes[i].UserID = INodeRead.ReadUInt16();
                 Inodes[i].SizeinBytes = INodeRead.ReadUInt32();
@@ -160,7 +164,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 Inodes[i].CountofDiskSectors = INodeRead.ReadUInt32();
                 Inodes[i].Flags = INodeRead.ReadUInt32();
                 Inodes[i].OS_Value1 = INodeRead.ReadUInt32();
-                for (int j=0;j<12;j++) {
+                for (uint j =0;j<12;j++) {
                     Inodes[i].DirectBlockPointer[j] = INodeRead.ReadUInt32();
                 }
                 Inodes[i].SinglyIndirectBlockPointer = INodeRead.ReadUInt32();
@@ -171,13 +175,6 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 Inodes[i].UpperFileSize= INodeRead.ReadUInt32();
                 Inodes[i].BlockAddr = INodeRead.ReadUInt32();
                 Inodes[i].OS_Value2 = INodeRead.ReadUInt32();
-                /*var build = new StringBuilder();
-                build.AppendFormat("Type: {0}\n", Inodes[i].TypeAndPermissions);
-                build.AppendFormat("UserID: {0}\n", Inodes[i].UserID);
-                build.AppendFormat("Size: {0}\n", Inodes[i].SizeinBytes);
-                Console.WriteLine(build.ToString());
-                Console.ReadLine();
-                */
             }
         }
     }

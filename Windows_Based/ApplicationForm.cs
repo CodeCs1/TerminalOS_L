@@ -29,12 +29,8 @@ namespace TerminalOS_L.Windows {
             can.DrawFilledRectangle(Color.White,0,0,20,20);
             can.DrawFilledRectangle(Color.White,width-20,0,20,20);
             /*Title*/
-            for (int i=title.Length/2;i>0;i--) {
-                can.DrawFilledRectangle(Color.Black,width/2-i,0,20,20);
-            }
-            for (int i=0;i<title.Length/2;i++) {
-                can.DrawFilledRectangle(Color.Black,width/2+i,0,20,20);
-            }
+            int TextLocation = (width/2)-title.Length;
+            can.DrawString(title,PCScreenFont.Default,Color.White,TextLocation,y);
             /*Line*/ 
             can.DrawLine(Color.Black,0,20,width,20);
         }

@@ -2,7 +2,6 @@ using System;
 using System.Drawing;
 using Sys=Cosmos.System;
 using Cosmos.System.Graphics;
-using Cosmos.Core.Memory;
 using Cosmos.HAL.Drivers.Video.SVGAII;
 
 namespace TerminalOS_L {
@@ -71,7 +70,7 @@ namespace TerminalOS_L {
                 Sys.MouseManager.ScreenHeight = 480;
                 Sys.MouseManager.X = 640/2;
                 Sys.MouseManager.Y = 480/2;
-                MSExe exe = new (canvas,"MS Executable",640,480);
+                MSExe exe = new (canvas,"MS-DOS Executable",640,480);
 
                 while(true) {
                     Point cur = new((int)Sys.MouseManager.X, (int)(int)Sys.MouseManager.Y);

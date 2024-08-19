@@ -56,6 +56,8 @@ namespace TerminalOS_L
         }
 
         public static bool SVGASupport;
+        private static string Username;
+        private static string Password;
 
         protected override void BeforeRun()
         {
@@ -70,7 +72,7 @@ namespace TerminalOS_L
             }
             Console.WriteLine("\nThis is root from Terminal OS.");
             Console.Write("root login: ");
-            Console.ReadLine();
+            Username = Console.ReadLine();
             string pass = string.Empty;
             ConsoleKey k;
 
@@ -89,14 +91,105 @@ namespace TerminalOS_L
                         pass += info.KeyChar;
                     }
             }while(k != ConsoleKey.Enter);
+            Password=pass;
+            Console.WriteLine();
+        }
+
+        public static StringBuilder v = new();
+        ///<summary>
+        /// The ReadLine function used to resemble the linux shell.
+        ///</summary>
+        private static string ReadLine() {
+            Console.Write($"{Username}$ ");
+            string res = null;
+            ConsoleKeyInfo info = Console.ReadKey(true);
+            while(info.Key != ConsoleKey.Enter) {
+                if ((info.Modifiers & ConsoleModifiers.Control) != 0) {
+                    switch(info.Key) {
+                        case ConsoleKey.L:
+                            Console.Clear();
+                            Console.Write($"{Username}$ {v}");
+                            break;
+                        case ConsoleKey.C:
+                            Console.Write("^C");
+                            Console.WriteLine();
+                            Console.Write($"{Username}$ ");
+                            Console.CursorLeft=0;
+                            break;
+                        case ConsoleKey.B:
+                            Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                            break;
+                        case ConsoleKey.F:
+                            Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop);
+                            break;
+                        case ConsoleKey.A:
+                            Console.SetCursorPosition(0, Console.CursorTop);
+                            break;
+                        case ConsoleKey.E:
+                            Console.SetCursorPosition(v.Length - 1, Console.CursorTop);
+                            break;
+                        case ConsoleKey.LeftArrow:
+                            Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                            break;
+                        case ConsoleKey.RightArrow:
+                            Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop);
+                            break;
+
+                    }
+                }
+                else {
+                    switch (info.Key) {
+                        case ConsoleKey.Backspace:
+                            if (v.Length > 0) {
+                                if (v[Console.CursorLeft-4] == '\t') { // check for tab key press
+                                    for (int i=0;i<4;i++) {
+                                        Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                                        Console.Write(" ");
+                                    }
+                                    Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorLeft);
+                                    v = v.Remove(v.Length - 1, 1);
+                                    Console.CursorLeft-=4;
+                                } else {
+                                    Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                                    Console.Write(" ");
+                                    Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                                    v = v.Remove(v.Length - 1, 1);
+                                }
+                            }
+                            break;
+                        case ConsoleKey.Tab:
+                            Console.SetCursorPosition(Console.CursorLeft + 4, Console.CursorTop);
+                            v.Append('\t');
+                            Console.CursorLeft+=4;
+                            break;
+                        case ConsoleKey.Enter:
+                            Console.CursorLeft = 0;
+                            Console.CursorTop++;
+                            break;
+                        case ConsoleKey.Spacebar:
+                            Console.Write(" ");
+                            v.Append(' ');
+                            break;
+                        default:
+                            Console.Write(info.KeyChar);
+                            v.Append(info.KeyChar);
+                            break;
+                    }
+                }
+                info = Console.ReadKey(true);
+            }
+            if (info.Key == ConsoleKey.Enter) {
+                Console.WriteLine();
+                res = v.ToString();
+            }
+            return res;
         }
         
         protected override void Run()
         {
-            Console.Write($"$ ");
-            var input = Console.ReadLine();
+            var input = ReadLine();
             cm.Input(input);
-            
+            v=new();
         }
 
         protected override void AfterRun()

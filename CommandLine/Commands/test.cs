@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 using TerminalOS_L.Driver;
+using TerminalOS_L.System;
 
 namespace TerminalOS_L {
             //MemoryStream memtest2 = new(a);
@@ -36,6 +37,11 @@ namespace TerminalOS_L {
                 return "Failed.";
             }
             Console.WriteLine(build2.ToString());
+            DeathScreen screen = new("Test passed.")
+            {
+                WinXP = true
+            };
+            screen.DrawGUI();
             Message.Send("If you gone this far, then congrat!");
 
             return "";
