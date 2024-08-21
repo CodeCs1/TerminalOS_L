@@ -3,8 +3,9 @@ using System.IO;
 using System.Text;
 using TerminalOS_L.Driver;
 
-// Some resource that helpping me in making this driver:
+// Some resource that helping me in making this driver:
 // https://wiki.osdev.org/Ext2
+// Special thanks to this youtube channel: https://www.youtube.com/@cjumpdotcom
 
 namespace TerminalOS_L.FileSystemR.Linux {
     public class Ext2 : VFS {
