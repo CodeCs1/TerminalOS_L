@@ -37,11 +37,8 @@ namespace TerminalOS_L {
                 return "Failed.";
             }
             Console.WriteLine(build2.ToString());
-            DeathScreen screen = new("Test passed.")
-            {
-                WinXP = true
-            };
-            screen.DrawGUI();
+            // Uncomment this to start the BSOD test.
+            //DeathScreen screen = new("Test passed.");screen.DrawGUI();
             Message.Send("If you gone this far, then congrat!");
 
             return "";

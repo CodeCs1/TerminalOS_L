@@ -8,6 +8,16 @@ using TerminalOS_L.Driver;
 
 namespace TerminalOS_L.FileSystemR.Linux {
     public class Ext2 : VFS {
+
+
+        public struct DirectoryEntry {
+            public uint inode;
+            public uint TotalSize;
+            public uint NameLength;
+            public byte TypeIndicator;
+            public byte[] Name;
+        }
+
         public ATA ata;
         public Inode inode;
         public new uint LBA_Start;
@@ -59,6 +69,9 @@ namespace TerminalOS_L.FileSystemR.Linux {
             spb.GroupID=r.ReadUInt16();
             if (spb.Signature == 0xef53) {
                 Message.Send("EXT File System detected.");
+            } else {
+                Message.Send_Error("Bad super block signature!");
+                return;
             }
             var builder = new StringBuilder();
             builder.AppendFormat("Total Inode: {0}\n",spb.TotalInodes);
@@ -129,9 +142,6 @@ namespace TerminalOS_L.FileSystemR.Linux {
             StartIndexTable(2,bgd[0],esb,spb);
         }
 
-
-
-
         private void StartIndexTable(int index,
             BlockGroupDescriptor blockGroup,ExtendedSuperBlock esb,
         SuperBlockEnum spb) {
@@ -142,39 +152,28 @@ namespace TerminalOS_L.FileSystemR.Linux {
             } else {
                 count = 128;
             }
+            uint Length = (uint)(spb.NumberofInodes/((1024<<(int)spb.BlockSize)/count));
+            StringBuilder res = new();
+            res.AppendFormat("{0} {1}", InodeTable,Length);
+            Console.WriteLine(res.ToString());
             byte[] buffer = new byte[count];
-            ata.Read28((int)(LBA_Start+InodeTable), (int)count,ref buffer);
+            //Jump into root dir (/)
+            ata.Read28((int)(LBA_Start + (blockGroup.InodeTable+Length)*2), (int)count,ref buffer);
             Kernel.PrintByteArray(buffer);
-            var INodeRead = new BinaryReader(new MemoryStream(buffer));
-            Inode[] Inodes = new Inode[10]; // TODO: Fix the limitation.
+
+            DirectoryEntry[] root = new DirectoryEntry[4];
+            using var diren_root = new BinaryReader(new MemoryStream(buffer));
             for (int i=0;i<4;i++) {
-                Inodes[i].DirectBlockPointer=new uint[12];
+                root[i].inode=diren_root.ReadUInt32();
+                root[i].TotalSize=diren_root.ReadUInt16();
+                root[i].NameLength=diren_root.ReadByte();
+                root[i].TypeIndicator = diren_root.ReadByte();
+                root[i].Name=diren_root.ReadBytes((int)root[i].NameLength);
             }
+            Console.WriteLine("Root Dir: ");
             for (int i=0;i<4;i++) {
-                Inodes[i].DirectBlockPointer = new uint[12];
-                Inodes[i].TypeAndPermissions = INodeRead.ReadUInt16();
-                Inodes[i].UserID = INodeRead.ReadUInt16();
-                Inodes[i].SizeinBytes = INodeRead.ReadUInt32();
-                Inodes[i].LastAccessTime = INodeRead.ReadUInt32();
-                Inodes[i].CreationTime = INodeRead.ReadUInt32();
-                Inodes[i].LastModificationTime = INodeRead.ReadUInt32();
-                Inodes[i].DeletionTime = INodeRead.ReadUInt32();
-                Inodes[i].GroupID = INodeRead.ReadUInt16();
-                Inodes[i].CountofHardLinks = INodeRead.ReadUInt16();
-                Inodes[i].CountofDiskSectors = INodeRead.ReadUInt32();
-                Inodes[i].Flags = INodeRead.ReadUInt32();
-                Inodes[i].OS_Value1 = INodeRead.ReadUInt32();
-                for (uint j =0;j<12;j++) {
-                    Inodes[i].DirectBlockPointer[j] = INodeRead.ReadUInt32();
-                }
-                Inodes[i].SinglyIndirectBlockPointer = INodeRead.ReadUInt32();
-                Inodes[i].DoublyIndirectBlockPointer = INodeRead.ReadUInt32();
-                Inodes[i].TriplyIndirectBlockPointer = INodeRead.ReadUInt32();
-                Inodes[i].GenerationNumber = INodeRead.ReadUInt32();
-                Inodes[i].ExtendedAttributeBlock = INodeRead.ReadUInt32();
-                Inodes[i].UpperFileSize= INodeRead.ReadUInt32();
-                Inodes[i].BlockAddr = INodeRead.ReadUInt32();
-                Inodes[i].OS_Value2 = INodeRead.ReadUInt32();
+                string str = Encoding.ASCII.GetString(root[i].Name);
+                Console.WriteLine(str);
             }
         }
     }

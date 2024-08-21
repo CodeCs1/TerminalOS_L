@@ -15,35 +15,19 @@ namespace TerminalOS_L.FileSystemR.Linux {
         public ushort CountofHardLinks;
         public uint CountofDiskSectors;
         public uint Flags;
-        [StructLayout(LayoutKind.Explicit)]
-        public struct OS_value1 {
-            [Serializable]
-            public struct Linux {
-                /// <summary>
-                /// Little-Endian value
-                /// </summary>
-                public uint Reserved;
-            }
-
-            [Serializable]
-            public struct Hurd {
-                /// <summary>
-                /// Little-Endian value
-                /// </summary>
-                public uint Translator;
-            }
-
-            [Serializable]
-            public struct Masix {
-                /// <summary>
-                /// Little-Endian value
-                /// </summary>
-                public uint Reserved;
-            }
-        }
         public uint OS_Value1;
-        [MarshalAs(UnmanagedType.ByValArray,SizeConst =12)]
-        public uint[] DirectBlockPointer;
+        public uint DirectBlockPointer0;
+        public uint DirectBlockPointer1;
+        public uint DirectBlockPointer2;
+        public uint DirectBlockPointer3;
+        public uint DirectBlockPointer4;
+        public uint DirectBlockPointer5;
+        public uint DirectBlockPointer6;
+        public uint DirectBlockPointer7;
+        public uint DirectBlockPointer8;
+        public uint DirectBlockPointer9;
+        public uint DirectBlockPointer10;
+        public uint DirectBlockPointer11;
         public uint SinglyIndirectBlockPointer;
         public uint DoublyIndirectBlockPointer;
         public uint TriplyIndirectBlockPointer;
@@ -51,32 +35,6 @@ namespace TerminalOS_L.FileSystemR.Linux {
         public uint ExtendedAttributeBlock;
         public uint UpperFileSize;
         public uint BlockAddr;
-        
-        [StructLayout(LayoutKind.Explicit)]
-        public struct OS_value2 {
-            [Serializable]
-            public struct Linux {
-                public byte frags;
-                public byte frags_size;
-                public UInt16 Reserved1;
-                public ushort HighUserID;
-                public ushort HightGroupID;
-                public uint Reserved2;
-            }
-            [Serializable]
-            public struct Hurd {
-
-            }
-            [Serializable]
-            public struct Masix {
-                public byte FragmentNumber;
-                public byte FragmentSize;
-                public ushort Pad;
-                [MarshalAs(UnmanagedType.ByValArray, SizeConst =2)]
-                public uint[] Reserved;
-            }
-        }
-
         public uint OS_Value2;
     }
 }

@@ -78,18 +78,19 @@ namespace TerminalOS_L
 
             Console.Write("Password: ");
             do {
-                var info = Console.ReadKey(intercept: true);
+                var info = Console.ReadKey(true);
                 k = info.Key;
-                    if (k == ConsoleKey.Backspace && pass.Length > 0)
-                    {
-                        Console.Write("\b \b");
-                        pass = pass[0..^1];
-                    }
-                    else if (!char.IsControl(info.KeyChar))
-                    {
-                        Console.Write("*");
-                        pass += info.KeyChar;
-                    }
+                if (k == ConsoleKey.Backspace && pass.Length > 0)
+                {
+                    Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                    Console.Write(" ");
+                    pass = pass[0..^1];
+                }
+                else if (!char.IsControl(info.KeyChar))
+                {
+                    Console.Write("*");
+                    pass += info.KeyChar;
+                }
             }while(k != ConsoleKey.Enter);
             Password=pass;
             Console.WriteLine();
@@ -100,7 +101,7 @@ namespace TerminalOS_L
         /// The ReadLine function used to resemble the linux shell.
         ///</summary>
         private static string ReadLine() {
-            Console.Write($"{Username}$ ");
+            Console.Write($"{Username}$ {v}");
             string res = null;
             ConsoleKeyInfo info = Console.ReadKey(true);
             while(info.Key != ConsoleKey.Enter) {
@@ -114,7 +115,7 @@ namespace TerminalOS_L
                             Console.Write("^C");
                             Console.WriteLine();
                             Console.Write($"{Username}$ ");
-                            Console.CursorLeft=0;
+                            v.Clear();
                             break;
                         case ConsoleKey.B:
                             Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
@@ -128,12 +129,6 @@ namespace TerminalOS_L
                         case ConsoleKey.E:
                             Console.SetCursorPosition(v.Length - 1, Console.CursorTop);
                             break;
-                        case ConsoleKey.LeftArrow:
-                            Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
-                            break;
-                        case ConsoleKey.RightArrow:
-                            Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop);
-                            break;
 
                     }
                 }
@@ -141,14 +136,13 @@ namespace TerminalOS_L
                     switch (info.Key) {
                         case ConsoleKey.Backspace:
                             if (v.Length > 0) {
-                                if (v[Console.CursorLeft-4] == '\t') { // check for tab key press
+                                if (v[^1] == '\t') { // check for tab key press
                                     for (int i=0;i<4;i++) {
                                         Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
                                         Console.Write(" ");
                                     }
-                                    Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorLeft);
+                                    Console.SetCursorPosition(Console.CursorLeft - 4, Console.CursorTop);
                                     v = v.Remove(v.Length - 1, 1);
-                                    Console.CursorLeft-=4;
                                 } else {
                                     Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
                                     Console.Write(" ");
@@ -160,7 +154,6 @@ namespace TerminalOS_L
                         case ConsoleKey.Tab:
                             Console.SetCursorPosition(Console.CursorLeft + 4, Console.CursorTop);
                             v.Append('\t');
-                            Console.CursorLeft+=4;
                             break;
                         case ConsoleKey.Enter:
                             Console.CursorLeft = 0;
@@ -169,6 +162,14 @@ namespace TerminalOS_L
                         case ConsoleKey.Spacebar:
                             Console.Write(" ");
                             v.Append(' ');
+                            break;
+                        case ConsoleKey.LeftArrow:
+                            if (Console.CursorLeft > 4+v.Length)
+                                Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                            break;
+                        case ConsoleKey.RightArrow:
+                            if (Console.CursorLeft < v.Length+4)
+                                Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop);
                             break;
                         default:
                             Console.Write(info.KeyChar);

@@ -31,7 +31,7 @@ namespace TerminalOS_L {
                     break;
                 default:
                     Console.WriteLine("NO such IDE Device: {0}", type);
-                    break;
+                    return "No such IDE Device";
             }
             ata.Identify();
             _ = new GPT(ata);
@@ -55,8 +55,12 @@ namespace TerminalOS_L {
                     e.Impl();
                     break;
                 case "fat32":
-                    _ = new FileSystemR.Microsoft.FAT32.FAT32(ata,(int)LBA_Start);
+                    var f = new FileSystemR.Microsoft.FAT32.FAT32(ata,(int)LBA_Start);
+                    f.ListAll();
                     break;
+                default:
+                    Message.Send_Error($"No such File System: {type}");
+                    return "No such File System";
             }
             return base.Execute(args);
         }

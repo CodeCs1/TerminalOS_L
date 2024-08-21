@@ -38,12 +38,6 @@ namespace TerminalOS_L.FileSystemR.Microsoft.FAT32
             br.VOlumeID = r.ReadUInt32();
             br.VolumeLabel = r.ReadBytes(11);
             br.SysIdentifiString = r.ReadBytes(8);
-            var builder = new StringBuilder();
-            builder.AppendFormat("Volume Label: {0}\n",Encoding.ASCII.GetString(br.VolumeLabel));
-            builder.AppendFormat("System Identifier String: {0}\n",Encoding.ASCII.GetString(br.SysIdentifiString));
-            builder.AppendFormat("OEM: {0}\n",Encoding.ASCII.GetString(br.OEM));
-            builder.AppendFormat("Fatsz32: {0}\n",br.SectorsPerFAT);
-            Console.WriteLine(builder.ToString());
 
             int Root_Sectors = LBA_Start+br.ReservedSectors;
             uint FatSz = br.SectorsPerFAT;
@@ -53,7 +47,21 @@ namespace TerminalOS_L.FileSystemR.Microsoft.FAT32
             /*byte[] Root_Dir = new byte[512];
             ata.Read28(Root_Sectors,512,ref Root_Dir);
             Kernel.PrintByteArray(Root_Dir);*/
-
+        }
+        //This function should be resemble to Cosmos File System.
+        public void ListAll() {
+            var builder = new StringBuilder();
+            Console.WriteLine("-------File System-------");
+            builder.AppendFormat("Bytes Per Sector: {0}\n",br.BytePerSectors);
+            builder.AppendFormat("Number of Sectors: {0}\n",br.NumberofSectors);
+            builder.AppendFormat("Reserved Sectors: {0}\n",br.ReservedSectors);
+            builder.AppendFormat("Number of FAT: {0}\n",br.NumberofFat);
+            builder.AppendFormat("Number of Root: {0}\n",br.NumberofRoot);
+            builder.AppendFormat("Total Sectors: {0}\n",br.totalSectors);
+            builder.AppendFormat("Media: {0}\n",br.Media);
+            builder.AppendFormat("Sectors Per Track: {0}\n",br.SectorsPerTrack);
+            builder.AppendFormat("Number of Head: {0}\n",br.NumberofHead);
+            Console.WriteLine(builder.ToString());
         }
     }
 }
