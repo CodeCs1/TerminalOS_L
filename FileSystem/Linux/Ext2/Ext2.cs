@@ -140,13 +140,86 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 build2.AppendFormat("UsedDirCount: {0}\n",   bgd[i].UsedDirCount);
                 Console.WriteLine(build2.ToString());
             }
-            ListRootDir(bgd[0],esb,spb);
+            Inode Root = GetInodeInfo(2,bgd,esb,spb);
+            Console.WriteLine(Convert.ToString(Root.TypeAndPermissions));
+
+        }
+
+        private Inode GetInodeInfo(int index,
+            BlockGroupDescriptor[] blockGroup,ExtendedSuperBlock esb,
+        SuperBlockEnum spb) {
+            if (index == 0) {
+                Message.Send_Error("Index 0 is illegal.");
+                return new Inode();
+            }
+            uint count;
+            if (spb.MajorPortion>=1) {
+                count = esb.SizeOfEachINode;
+            } else {
+                count = 128;
+            }
+            int BlockGroup = (int)((index-1)/spb.NumberofInodes);
+            uint ItableStart = Block2LBA(blockGroup[BlockGroup].InodeTable);
+            uint Length = (uint)(spb.NumberofInodes/((1024<<(int)spb.BlockSize)/count));
+            int _index_=0;
+            int Split = (int)(512 / count);
+            for (int i=1;i<=Length;i++) {
+                if (i % Split == 0) {
+                    if (i == index) {
+                        break;
+                    }
+                    _index_++;
+                }
+            }
+            byte[] buffer = new byte[512];
+            ata.Read28((int)(LBA_Start+ItableStart+_index_), 512,ref buffer);
+
+            using var diren = new BinaryReader(new MemoryStream(buffer));
+            if (index%2 == 0) {
+                diren.BaseStream.Seek(count,SeekOrigin.Current);
+            }
+            Inode inode = new()
+            {
+                TypeAndPermissions = diren.ReadUInt16(),
+                UserID=diren.ReadUInt16(),
+                SizeinBytes=diren.ReadUInt32(),
+                LastAccessTime=diren.ReadUInt32(),
+                LastModificationTime=diren.ReadUInt32(),
+                CreationTime=diren.ReadUInt32(),
+                DeletionTime=diren.ReadUInt32(),
+                GroupID=diren.ReadUInt16(),
+                CountofHardLinks=diren.ReadUInt16(),
+                CountofDiskSectors=diren.ReadUInt32(),
+                Flags=diren.ReadUInt32(),
+                OS_Value1=diren.ReadUInt32(),
+                DirectBlockPointer0=diren.ReadUInt32(),
+                DirectBlockPointer1=diren.ReadUInt32(),
+                DirectBlockPointer2=diren.ReadUInt32(),
+                DirectBlockPointer3=diren.ReadUInt32(),
+                DirectBlockPointer4=diren.ReadUInt32(),
+                DirectBlockPointer5=diren.ReadUInt32(),
+                DirectBlockPointer6=diren.ReadUInt32(),
+                DirectBlockPointer7=diren.ReadUInt32(),
+                DirectBlockPointer8=diren.ReadUInt32(),
+                DirectBlockPointer9=diren.ReadUInt32(),
+                DirectBlockPointer10=diren.ReadUInt32(),
+                DirectBlockPointer11=diren.ReadUInt32(),
+                SinglyIndirectBlockPointer=diren.ReadUInt32(),
+                DoublyIndirectBlockPointer=diren.ReadUInt32(),
+                TriplyIndirectBlockPointer=diren.ReadUInt32(),
+                GenerationNumber=diren.ReadUInt32(),
+                ExtendedAttributeBlock=diren.ReadUInt32(),
+                UpperFileSize=diren.ReadUInt32(),
+                BlockAddr=diren.ReadUInt32(),
+                OS_Value2=diren.ReadBytes(12)
+            };
+
+            return inode;
         }
 
         private void ListRootDir(
             BlockGroupDescriptor blockGroup,ExtendedSuperBlock esb,
         SuperBlockEnum spb) {
-            //uint InodeTable = Block2LBA(blockGroup.InodeTable);
             uint count;
             if (spb.MajorPortion>=1) {
                 count = esb.SizeOfEachINode;
@@ -157,7 +230,6 @@ namespace TerminalOS_L.FileSystemR.Linux {
             byte[] buffer = new byte[count];
             //Jump into root dir (/)
             ata.Read28((int)(LBA_Start + (blockGroup.InodeTable+Length)*2), (int)count,ref buffer);
-
             using var diren_root = new BinaryReader(new MemoryStream(buffer));
             int count_dir = 0;
 

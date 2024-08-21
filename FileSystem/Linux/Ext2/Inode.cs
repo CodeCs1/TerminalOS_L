@@ -35,6 +35,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
         public uint ExtendedAttributeBlock;
         public uint UpperFileSize;
         public uint BlockAddr;
-        public uint OS_Value2;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 12)]
+        public byte[] OS_Value2;
     }
 }
