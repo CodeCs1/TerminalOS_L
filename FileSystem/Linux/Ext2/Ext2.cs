@@ -27,11 +27,10 @@ namespace TerminalOS_L.FileSystemR.Linux {
             this.ata = ata;
             this.LBA_Start=initLBA;
         }
-        public override ATA ATA => ata;        
+        public override ATA ATA => ata;
+        public override string Type => "EXT2";
+
         
-        public int Offset(int block,int size) {
-            return 1024+(block-1)*size;
-        }
         private static uint Block2LBA(uint block_no) {
             return block_no*2;
         }

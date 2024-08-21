@@ -1,7 +1,7 @@
 # TerminalOS_L (Terminal OS Linux reborn)
-This project is used to restore the old TerminalOS Project which broken for some reason (I think it's caused by Cosmos C# Kernel itself).
+This project is used to restore the old TerminalOS Project with some new features and fixes.
 
-If you want to see it, check here: [Old project github link](https://github.com/CodeCs1/TerminalOS-v1-C-)
+If you want to see the old one, check it here: [Old project github link](https://github.com/CodeCs1/TerminalOS-v1-C-)
 
 > [!NOTE]
 > This should be worked on all PC platform[^1]
@@ -20,11 +20,14 @@ dotnet build
 * Road Map:
     - [x] A custom ATA PIO Driver.
     - [x] GUI forked from Win 1.0.<sup>Just done the basic</sup>
-    - [x] MBR and GPT Partition table
-    - [x] Ext2, FAT32 File System Support
-    - [ ] Network Support
+    - [x] MBR and GPT Partition table.
+    - [x] Ext2, FAT32 File System Support.
+    - [ ] Network Support.
     - [ ] EXT3/EXT4, NTFS File System Support.
-    - [ ] A VFS replacement
+    - [ ] A VFS replacement.
+    - [ ] A custom ATAPI Driver.<sup>CDRom driver</sup>
+    - [ ] Porting lua programming language.
+    - [ ] ELF Reader and Loader.<sup>Exe file as well</sup>
 
 
 [^1]: I don't know if Cosmos C# is support MacOS

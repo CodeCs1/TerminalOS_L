@@ -18,5 +18,7 @@ namespace TerminalOS_L.FileSystemR {
         public virtual string DiskLabel {get;set;}
         public virtual uint LBA_Start {get;set;}
         public virtual ATA ATA {get;}
+        public virtual string Type {get;}
+        public virtual void List() {}
     }
 }
