@@ -21,6 +21,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
         public ATA ata;
         public Inode inode;
         public new uint LBA_Start;
+
         public Ext2(ATA ata,uint initLBA) : base(ata,initLBA) {
             this.ata = ata;
             this.LBA_Start=initLBA;
@@ -139,13 +140,13 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 build2.AppendFormat("UsedDirCount: {0}\n",   bgd[i].UsedDirCount);
                 Console.WriteLine(build2.ToString());
             }
-            StartIndexTable(2,bgd[0],esb,spb);
+            ListRootDir(bgd[0],esb,spb);
         }
 
-        private void StartIndexTable(int index,
+        private void ListRootDir(
             BlockGroupDescriptor blockGroup,ExtendedSuperBlock esb,
         SuperBlockEnum spb) {
-            uint InodeTable = Block2LBA(blockGroup.InodeTable);
+            //uint InodeTable = Block2LBA(blockGroup.InodeTable);
             uint count;
             if (spb.MajorPortion>=1) {
                 count = esb.SizeOfEachINode;
@@ -153,27 +154,49 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 count = 128;
             }
             uint Length = (uint)(spb.NumberofInodes/((1024<<(int)spb.BlockSize)/count));
-            StringBuilder res = new();
-            res.AppendFormat("{0} {1}", InodeTable,Length);
-            Console.WriteLine(res.ToString());
             byte[] buffer = new byte[count];
             //Jump into root dir (/)
             ata.Read28((int)(LBA_Start + (blockGroup.InodeTable+Length)*2), (int)count,ref buffer);
-            Kernel.PrintByteArray(buffer);
 
-            DirectoryEntry[] root = new DirectoryEntry[4];
             using var diren_root = new BinaryReader(new MemoryStream(buffer));
-            for (int i=0;i<4;i++) {
-                root[i].inode=diren_root.ReadUInt32();
-                root[i].TotalSize=diren_root.ReadUInt16();
-                root[i].NameLength=diren_root.ReadByte();
-                root[i].TypeIndicator = diren_root.ReadByte();
-                root[i].Name=diren_root.ReadBytes((int)root[i].NameLength);
+            int count_dir = 0;
+
+            DirectoryEntry[] root=new DirectoryEntry[256]; // TODO: Fix the limit of directory
+            while(count_dir<256) {
+                root[count_dir].inode = diren_root.ReadUInt32();
+                if (Convert.ToInt32(root[count_dir].inode) == 0) { // Inode 0 is illegal.
+                    break;
+                }
+                root[count_dir].TotalSize=diren_root.ReadUInt16();
+                root[count_dir].NameLength=diren_root.ReadByte();
+                root[count_dir].TypeIndicator = diren_root.ReadByte();
+                root[count_dir].Name =diren_root.ReadBytes((int)root[count_dir].NameLength);
+                switch(Encoding.ASCII.GetString(root[count_dir].Name)) {
+                    case ".":
+                        diren_root.BaseStream.Seek(3,SeekOrigin.Current);
+                        break;
+                    case "..":
+                        diren_root.BaseStream.Seek(2,SeekOrigin.Current);
+                        break;
+                    default:
+                        diren_root.BaseStream.Seek(2,SeekOrigin.Current);
+                        break;
+                }
+                count_dir++;
             }
             Console.WriteLine("Root Dir: ");
-            for (int i=0;i<4;i++) {
-                string str = Encoding.ASCII.GetString(root[i].Name);
-                Console.WriteLine(str);
+            for (int i=0;i<count_dir;i++) 
+            {
+                var builder = new StringBuilder();
+                switch(root[i].TypeIndicator) {
+                    case 1:
+                        builder.AppendFormat("File Name: {0}",Encoding.ASCII.GetString(root[i].Name));
+                        break;
+                    case 2:
+                        builder.AppendFormat("Directory: {0}",Encoding.ASCII.GetString(root[i].Name));
+                        break;
+                }
+                Console.WriteLine(builder.ToString());
             }
         }
     }
