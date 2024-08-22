@@ -2,7 +2,7 @@ using System;
 using TerminalOS_L.FileSystemR;
 using TerminalOS_L.Misc;
 
-namespace TerminalOS_L.BUiltinProgram {
+namespace TerminalOS_L.BuiltinProgram {
     public class ls : Command {
         public ls(string name) : base(name) {
 

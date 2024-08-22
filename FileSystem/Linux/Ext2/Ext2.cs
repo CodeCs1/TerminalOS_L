@@ -5,7 +5,8 @@ using TerminalOS_L.Driver;
 
 // Some resource that helping me in making this driver:
 // https://wiki.osdev.org/Ext2
-// Special thanks to this youtube channel: https://www.youtube.com/@cjumpdotcom
+// http://www.science.smith.edu/~nhowe/262/oldlabs/ext2.html
+// https://www.youtube.com/@cjumpdotcom
 
 namespace TerminalOS_L.FileSystemR.Linux {
     public class Ext2 : VFS {
@@ -147,7 +148,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
         public override void List(string Path) {
             Inode Root = GetInodeInfo(2,bgd,esb,spb);
             if (Path == "/") {
-                ListDir(Root,esb,spb);
+                ListDir(Root);
             } else {
                 //TODO
                 Message.Send_Warning("Still in development!");
@@ -165,6 +166,21 @@ namespace TerminalOS_L.FileSystemR.Linux {
             set {
                 throw new NotImplementedException();
             }
+        }
+
+        public override string ReadFile(string path)
+        {
+            Inode Root = GetInodeInfo(2,bgd,esb,spb);
+            DirectoryEntry[] en = GetDirectoryEntry(Root, esb, spb);
+            for (int i=0;i<en.Length;i++) {
+                if (Encoding.ASCII.GetString(en[i].Name).Equals(path)) {
+                    byte[] buffer = new byte[en[i].TotalSize];
+                    Inode Block = GetInodeInfo((int)en[i].inode,bgd,esb,spb);
+                    ata.Read28((int)(LBA_Start +Block2LBA(Block.DirectBlockPointer0)), (int)en[i].TotalSize,ref buffer);
+                    return Encoding.ASCII.GetString(buffer);
+                }
+            }
+            return "";
         }
 
         private Inode GetInodeInfo(int index,
@@ -238,8 +254,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
 
             return inode;
         }
-
-        private void ListDir(Inode inode,ExtendedSuperBlock esb,
+        private DirectoryEntry[] GetDirectoryEntry(Inode inode,ExtendedSuperBlock esb,
         SuperBlockEnum spb) {
             uint count;
             if (spb.MajorPortion>=1) {
@@ -252,38 +267,79 @@ namespace TerminalOS_L.FileSystemR.Linux {
             using var diren_root = new BinaryReader(new MemoryStream(buffer));
             int count_dir = 0;
 
-            DirectoryEntry[] root=new DirectoryEntry[256]; // TODO: Fix the limit of directory
+            DirectoryEntry[] dir=new DirectoryEntry[256]; // TODO: Fix the limit of directory
             while(count_dir<256) {
-                root[count_dir].inode = diren_root.ReadUInt32();
-                if (Convert.ToInt32(root[count_dir].inode) == 0) { // Inode 0 is illegal.
+                dir[count_dir].inode = diren_root.ReadUInt32();
+                if (Convert.ToInt32(dir[count_dir].inode) == 0) { // Inode 0 is illegal.
                     break;
                 }
+                dir[count_dir].TotalSize=diren_root.ReadUInt16();
+                dir[count_dir].NameLength=diren_root.ReadByte();
+                dir[count_dir].TypeIndicator = diren_root.ReadByte();
+                dir[count_dir].Name =diren_root.ReadBytes((int)dir[count_dir].NameLength);
+                if (dir[count_dir].NameLength < 4) {
+                    diren_root.BaseStream.Seek(4 - dir[count_dir].NameLength,SeekOrigin.Current);
+                } else if (dir[count_dir].NameLength > 4) {
+                    int remainder = (int)(dir[count_dir].NameLength % 4);
+                    if (remainder != 0) {
+                        int seektime = 4 - remainder;
+                        diren_root.BaseStream.Seek(seektime,SeekOrigin.Current);
+                    }
+                }
+
+                if (Convert.ToInt32(dir[count_dir].inode) == 0) {
+                    break;
+                }
+
+                count_dir++;
+            }
+
+            return dir;
+        }
+
+        private void ListDir(Inode inode) {
+            byte[] buffer = new byte[1024];
+            ata.Read28((int)(LBA_Start + Block2LBA(inode.DirectBlockPointer0)), (int)1024,ref buffer);
+            using var diren_root = new BinaryReader(new MemoryStream(buffer));
+            DirectoryEntry[] root=new DirectoryEntry[256]; // TODO: Fix the limit of directory
+            int count_dir = 0;
+            while(count_dir<256) {
+                root[count_dir].inode = diren_root.ReadUInt32();
+
                 root[count_dir].TotalSize=diren_root.ReadUInt16();
                 root[count_dir].NameLength=diren_root.ReadByte();
                 root[count_dir].TypeIndicator = diren_root.ReadByte();
                 root[count_dir].Name =diren_root.ReadBytes((int)root[count_dir].NameLength);
-                switch(Encoding.ASCII.GetString(root[count_dir].Name)) {
-                    case ".":
-                        diren_root.BaseStream.Seek(3,SeekOrigin.Current);
-                        break;
-                    case "..":
-                        diren_root.BaseStream.Seek(2,SeekOrigin.Current);
-                        break;
-                    default:
-                        diren_root.BaseStream.Seek(2,SeekOrigin.Current);
-                        break;
+
+                //ye
+                // https://stackoverflow.com/questions/7648911/are-ext2-directory-entry-names-guaranteed-to-be-null-terminated-on-a-valid-file
+                if (root[count_dir].NameLength < 4) {
+                    diren_root.BaseStream.Seek(4 - root[count_dir].NameLength,SeekOrigin.Current);
+                } else if (root[count_dir].NameLength > 4) {
+                    int remainder = (int)(root[count_dir].NameLength % 4);
+                    if (remainder != 0) {
+                        int seektime = 4 - remainder;
+                        diren_root.BaseStream.Seek(seektime,SeekOrigin.Current);
+                    }
+                }
+
+                if (Convert.ToInt32(root[count_dir].inode) == 0) {
+                    break;
                 }
                 count_dir++;
             }
+
             for (int i=0;i<count_dir;i++) 
             {
                 var builder = new StringBuilder();
                 switch(root[i].TypeIndicator) {
                     case 1:
-                        builder.AppendFormat("{0}",Encoding.ASCII.GetString(root[i].Name));
+                        builder.AppendFormat("{0}    {1}",
+                        Encoding.ASCII.GetString(root[i].Name), 
+                        root[i].TotalSize);
                         break;
                     case 2:
-                        builder.AppendFormat("{0}/",Encoding.ASCII.GetString(root[i].Name));
+                        builder.AppendFormat("{0}    <DIR>",Encoding.ASCII.GetString(root[i].Name));
                         break;
                 }
                 Console.WriteLine(builder.ToString());

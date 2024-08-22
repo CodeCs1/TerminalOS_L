@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TerminalOS_L.BUiltinProgram;
+using TerminalOS_L.BuiltinProgram;
 using TerminalOS_L.Misc;
 
 namespace TerminalOS_L {
@@ -16,11 +16,12 @@ namespace TerminalOS_L {
                 new Win("win"),
                 new Mount("mount"),
                 new Getroot("getroot"),
-                new ls("ls")
+                new ls("ls"),
+                new Viewpad()
             };
         }
 
-        public string Input(string input) {
+        public string Command(string input) {
             string[] spl = input.Split(' ');
             string commandname = spl[0];
 
@@ -41,6 +42,17 @@ namespace TerminalOS_L {
                 }
             }
             return $"Command,File '{commandname}' not found";
+        }
+        public string Input(string input) {
+            if (input.Contains("&&")) {
+                string[] spl = input.Split("&&");
+                foreach(string command in spl) {
+                    Command(command);
+                }
+            } else {
+                Command(input);
+            }
+            return "";
         }
     }
 }

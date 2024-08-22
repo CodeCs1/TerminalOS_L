@@ -1,5 +1,6 @@
 *.log
 *.img
+*.txt
 *.vmdk
 bin/*
 obj/*

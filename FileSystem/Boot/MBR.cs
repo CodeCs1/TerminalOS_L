@@ -41,6 +41,7 @@ namespace TerminalOS_L.FileSystemR {
             mbr_.Reserved = r.ReadUInt16();
 
             Message.Send_Log("Read Partitions MBR");
+            int count = 0;
             for (int i=0;i<4;i++) {
                 mbr_.Partitions[i].DriveAttribute = r.ReadByte();
                 mbr_.Partitions[i].CHSAddrStart = r.ReadBytes(3);
@@ -48,8 +49,9 @@ namespace TerminalOS_L.FileSystemR {
                 mbr_.Partitions[i].CHSAddrEnd = r.ReadBytes(3);
                 mbr_.Partitions[i].LBAStart = r.ReadUInt32();
                 mbr_.Partitions[i].NumberofSectors = r.ReadUInt32();
-                if (mbr_.Partitions[i].LBAStart==0) break;
-                TotalPartition++;
+                if (mbr_.Partitions[i].LBAStart!=0) {
+                    count++;
+                }
             }
 
             Message.Send_Log("Read Signature MBR");
@@ -59,6 +61,7 @@ namespace TerminalOS_L.FileSystemR {
             } else {
                 Message.Send_Error("Invaild MBR Signature!");
             }
+            TotalPartition = count;
         }
         public void List() {
             Console.WriteLine("Press anykey to continue for each output.");

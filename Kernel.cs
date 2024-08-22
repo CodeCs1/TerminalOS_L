@@ -113,7 +113,7 @@ namespace TerminalOS_L
                         case ConsoleKey.C:
                             Console.Write("^C");
                             Console.WriteLine();
-                            Console.Write($"{Username}$ ");
+                            Console.Write($"[{path}]{Username}$ ");
                             v.Clear();
                             break;
                         case ConsoleKey.B:
@@ -123,10 +123,10 @@ namespace TerminalOS_L
                             Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop);
                             break;
                         case ConsoleKey.A:
-                            Console.SetCursorPosition(0, Console.CursorTop);
+                            Console.SetCursorPosition(4+v.Length+Getroot.Path.Length, Console.CursorTop);
                             break;
                         case ConsoleKey.E:
-                            Console.SetCursorPosition(v.Length - 1, Console.CursorTop);
+                            Console.SetCursorPosition(4+v.Length+Getroot.Path.Length+(v.Length - 1), Console.CursorTop);
                             break;
 
                     }
@@ -163,11 +163,11 @@ namespace TerminalOS_L
                             v.Append(' ');
                             break;
                         case ConsoleKey.LeftArrow:
-                            if (Console.CursorLeft > 4+v.Length)
+                            if (Console.CursorLeft > 4+v.Length+Getroot.Path.Length)
                                 Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
                             break;
                         case ConsoleKey.RightArrow:
-                            if (Console.CursorLeft < v.Length+4)
+                            if (Console.CursorLeft < v.Length+4+Getroot.Path.Length)
                                 Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop);
                             break;
                         default:
