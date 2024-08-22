@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Text;
 using Cosmos.HAL;
-using TerminalOS_L.FileSystemR.Microsoft;
-using TerminalOS_L.System;
+using TerminalOS_L.Misc;
 using Sys = Cosmos.System;
 
 namespace TerminalOS_L
@@ -13,7 +12,6 @@ namespace TerminalOS_L
         public static CommandManager cm;
         public static string file;
 
-        public static MBR.MBR_t mbr_;
 
         public static string DOW(int day) {
             switch (day)
@@ -101,7 +99,8 @@ namespace TerminalOS_L
         /// The ReadLine function used to resemble the linux shell.
         ///</summary>
         private static string ReadLine() {
-            Console.Write($"{Username}$ {v}");
+            string path = string.IsNullOrEmpty(Getroot.Path) ? "Rootless" : Getroot.Path;
+            Console.Write($"[{path}]{Username}$ {v}");
             string res = null;
             ConsoleKeyInfo info = Console.ReadKey(true);
             while(info.Key != ConsoleKey.Enter) {
@@ -109,7 +108,7 @@ namespace TerminalOS_L
                     switch(info.Key) {
                         case ConsoleKey.L:
                             Console.Clear();
-                            Console.Write($"{Username}$ {v}");
+                            Console.Write($"[{path}]{Username}$ {v}");
                             break;
                         case ConsoleKey.C:
                             Console.Write("^C");

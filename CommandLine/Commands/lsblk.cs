@@ -1,5 +1,7 @@
 using System;
+using System.Text;
 using TerminalOS_L.Driver;
+using TerminalOS_L.FileSystemR;
 
 namespace TerminalOS_L {
     public class ListBlock : Command
@@ -12,7 +14,15 @@ namespace TerminalOS_L {
             Console.WriteLine("Disk Name:");
             foreach(string name in ATA.DeviceName) {
                 Console.WriteLine("/dev/{0}",name);
-                Console.WriteLine(" +- /dev/{0}1",name);
+                if (GPT.TotalPartition != -1) {
+                    for (int i=1;i<=GPT.TotalPartition;i++) {
+                        Console.WriteLine($" +- /dev/{name}{i}");
+                    }
+                } else {
+                    for (int i=1;i<=MBR.TotalPartition;i++) {
+                        Console.WriteLine($" +- /dev/{name}{i}");
+                    }
+                }
             }
             return "";
         }

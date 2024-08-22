@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TerminalOS_L.BUiltinProgram;
+using TerminalOS_L.Misc;
 
 namespace TerminalOS_L {
     public class CommandManager {
@@ -12,7 +14,9 @@ namespace TerminalOS_L {
                 new TestCase("test"),
                 new ListBlock("lsblk"),
                 new Win("win"),
-                new Mount("mount")
+                new Mount("mount"),
+                new Getroot("getroot"),
+                new ls("ls")
             };
         }
 

@@ -1,22 +1,20 @@
 using System;
 using TerminalOS_L.Driver;
 using TerminalOS_L.FileSystemR;
-using TerminalOS_L.FileSystemR.Microsoft;
+using TerminalOS_L.Misc;
 
 namespace TerminalOS_L {
     public class Mount : Command {
         public Mount(string name) : base(name) {}
         public override string Execute(string[] args)
         {
-            //mount ext2 IDE_0 1
-            //mount fat32 IDE_0 2 -l
-            if (args.Length < 3) {
-                Console.WriteLine("Usage: mount <FileSystem> IDE_<0->4> Partition_number(1->4)");
+            //mount IDE_0
+            if (args.Length < 1) {
+                Console.WriteLine("Usage: mount IDE_<0->4> ");
                 return "Less argsuments";
             }
-            string type=args[0];
-            ATA ata=new(0x1f0,true);
-            switch (args[1]) {
+            ATA ata;
+            switch (args[0]) {
                 case "IDE_0":
                     ata = new(0x1f0, true);
                     break;
@@ -30,38 +28,16 @@ namespace TerminalOS_L {
                     ata = new(0x170, false);
                     break;
                 default:
-                    Console.WriteLine("NO such IDE Device: {0}", type);
+                    Console.WriteLine("NO such IDE Device: {0}", args[0]);
                     return "No such IDE Device";
             }
             ata.Identify();
             _ = new GPT(ata);
-            uint LBA_Start;
-            if (GPT.ISGpt())
+            if (!GPT.ISGpt()) // MBR Partition only support 4 Partitions
             {
-                LBA_Start = (uint)GPT.type[Convert.ToInt32(args[2]) - 1].StartingLBA;
+                _ = new MBR(ata);
             }
-            else // MBR Partition only support 4 Partitions
-            {
-                if (Convert.ToInt32(args[2]) > 3) {
-                    Message.Send_Error("Only support 4 partitions!");
-                    return "Out of partition";
-                }
-                MBR mbr = new(ata);
-                LBA_Start = mbr.mbr_.Partitions[Convert.ToInt32(args[2]) - 1].LBAStart;
-            }
-            switch(type) {
-                case "ext2":
-                    var e = new FileSystemR.Linux.Ext2(ata, /*mbr.mbr_.Partitions[Convert.ToInt32(args[2])-1].LBAStart*/ LBA_Start);
-                    e.Impl();
-                    break;
-                case "fat32":
-                    var f = new FileSystemR.Microsoft.FAT32.FAT32(ata,(int)LBA_Start);
-                    f.ListAll();
-                    break;
-                default:
-                    Message.Send_Error($"No such File System: {type}");
-                    return "No such File System";
-            }
+            Getroot.ata = ata;
             return base.Execute(args);
         }
     }

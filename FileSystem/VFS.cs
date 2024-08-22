@@ -1,5 +1,6 @@
 /*Welcome to the world of Virtual File System!*/
 using System.Collections.Generic;
+using System.Text;
 using TerminalOS_L.Driver;
 
 /*
@@ -12,13 +13,15 @@ using TerminalOS_L.Driver;
 namespace TerminalOS_L.FileSystemR {
     public abstract class VFS {
         public VFS(ATA ata,uint LBA_Start) {}
-        public virtual void Impl() {}
-        public virtual void ReadFile() {}
+        public virtual int Impl() {return 0;}
+        public virtual string ReadFile(string path) { return ""; }
+
+        public virtual byte[] ReadFileBytes(string path) { return Encoding.ASCII.GetBytes(""); }
         public virtual void GetInfo() {}
         public virtual string DiskLabel {get;set;}
         public virtual uint LBA_Start {get;set;}
         public virtual ATA ATA {get;}
         public virtual string Type {get;}
-        public virtual void List() {}
+        public virtual void List(string Path) {}
     }
 }

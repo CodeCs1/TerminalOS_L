@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using TerminalOS_L.Driver;
 
-namespace TerminalOS_L.FileSystemR.Microsoft {
+namespace TerminalOS_L.FileSystemR {
     public class MBR {
         [StructLayout(LayoutKind.Sequential, Pack =1)]
         public  struct PartitionTable {
@@ -26,7 +26,8 @@ namespace TerminalOS_L.FileSystemR.Microsoft {
             public PartitionTable[] Partitions;
             public UInt16 Signature;
         }
-        public MBR_t mbr_;
+        public static MBR_t mbr_;
+        public static int TotalPartition=0;
 
         public MBR(ATA ata) {
             var mbr = new byte[512];
@@ -47,6 +48,8 @@ namespace TerminalOS_L.FileSystemR.Microsoft {
                 mbr_.Partitions[i].CHSAddrEnd = r.ReadBytes(3);
                 mbr_.Partitions[i].LBAStart = r.ReadUInt32();
                 mbr_.Partitions[i].NumberofSectors = r.ReadUInt32();
+                if (mbr_.Partitions[i].LBAStart==0) break;
+                TotalPartition++;
             }
 
             Message.Send_Log("Read Signature MBR");
@@ -59,7 +62,7 @@ namespace TerminalOS_L.FileSystemR.Microsoft {
         }
         public void List() {
             Console.WriteLine("Press anykey to continue for each output.");
-            for (int i=0;i<4;i++) {
+            for (int i=0;i<TotalPartition;i++) {
                 Console.WriteLine("--- MBR Log ---");
                 Console.WriteLine("Partition: #"+(i+1));
                 StringBuilder build = new();

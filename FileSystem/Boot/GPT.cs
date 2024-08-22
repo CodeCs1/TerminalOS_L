@@ -55,6 +55,7 @@ namespace TerminalOS_L.FileSystemR {
         private readonly PMBR pmbr;
         public static PTH pth;
         public static PartitionType[] type;
+        public static int TotalPartition=-1;
 
         public GPT(ATA ata) {
             byte[] PMBR_data = new byte[512];
@@ -83,8 +84,8 @@ namespace TerminalOS_L.FileSystemR {
             pth.GUID = GPTReader.ReadBytes(16);
             pth.StartLBA = GPTReader.ReadUInt64();
             // TODO: Fix the litmitation.
-            // Although total partition in GPT is unlimited, it's hard for developor to allocate an Byte array
-            //Limit GPT Drive: 32
+            // Although total partition in GPT is unlimited, it's hard for developor to allocate a Byte array
+            // Limit GPT Drive: 32
             byte[] PT = new byte[512*64]; 
             ata.Read28(2, 512*64, ref PT);
             type = new PartitionType[32];
@@ -100,12 +101,17 @@ namespace TerminalOS_L.FileSystemR {
                 //Sometime binaryreader read byte is max of uint type.
                 if (type[PartitionCount].StartingLBA == ulong.MaxValue && type[PartitionCount].EndingLBA == ulong.MaxValue) { // Why?
                     break;
+                } else if (type[PartitionCount].StartingLBA == 0 && type[PartitionCount].EndingLBA == 0) {
+                    break;
                 }
             }
+
+            TotalPartition = PartitionCount;
         }
 
         public static bool ISGpt() {
             return Encoding.ASCII.GetString(pth.Signature) == "EFI PART";
         }
+
     }
 }

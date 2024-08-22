@@ -35,12 +35,15 @@ namespace TerminalOS_L.FileSystemR.Linux {
             return block_no*2;
         }
 
-        public override void Impl()
+        private SuperBlockEnum spb=new();
+        private ExtendedSuperBlock esb=new();
+
+        private BlockGroupDescriptor[] bgd;
+
+        public override int Impl()
         {
             //Read Super Block
             byte[] superblock = new byte[1024];
-            SuperBlockEnum spb=new();
-            ExtendedSuperBlock esb=new();
             ata.Read28((int)(LBA_Start + 2), 1024,ref superblock);
             var r = new BinaryReader(new MemoryStream(superblock));
             spb.TotalInodes=r.ReadUInt32();
@@ -72,7 +75,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 Message.Send("EXT File System detected.");
             } else {
                 Message.Send_Error("Bad super block signature!");
-                return;
+                return -1;
             }
             var builder = new StringBuilder();
             builder.AppendFormat("Total Inode: {0}\n",spb.TotalInodes);
@@ -112,11 +115,9 @@ namespace TerminalOS_L.FileSystemR.Linux {
             int bgdsz = (int)(spb.TotalInodes/spb.NumberofInodes);
             builder.AppendFormat("BGD Size: {0}\n", bgdsz);
             Console.WriteLine(builder.ToString());
-            BlockGroupDescriptor[] bgd=new BlockGroupDescriptor[bgdsz];
+            bgd=new BlockGroupDescriptor[bgdsz];
             byte[] blockdescriptor = new byte[32*bgdsz];
             ata.Read28((int)(LBA_Start+4), 32*bgdsz,ref blockdescriptor);
-            Kernel.PrintByteArray(blockdescriptor);
-            Console.ReadLine();
             r = new BinaryReader(new MemoryStream(blockdescriptor));
             for (int i=0;i<bgdsz;i++) {
                 bgd[i].BlockBitmap=r.ReadUInt32();
@@ -140,9 +141,30 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 build2.AppendFormat("UsedDirCount: {0}\n",   bgd[i].UsedDirCount);
                 Console.WriteLine(build2.ToString());
             }
-            Inode Root = GetInodeInfo(2,bgd,esb,spb);
-            Console.WriteLine(Convert.ToString(Root.TypeAndPermissions));
 
+            return 0; 
+        }
+        public override void List(string Path) {
+            Inode Root = GetInodeInfo(2,bgd,esb,spb);
+            if (Path == "/") {
+                ListDir(Root,esb,spb);
+            } else {
+                //TODO
+                Message.Send_Warning("Still in development!");
+            }
+        }
+
+        public override string DiskLabel { 
+            get {
+                if (spb.MajorPortion>=1) {
+                    return Encoding.ASCII.GetString(esb.VolumeName);
+                } else {
+                    return "NoLabel";
+                }
+            }
+            set {
+                throw new NotImplementedException();
+            }
         }
 
         private Inode GetInodeInfo(int index,
@@ -217,8 +239,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
             return inode;
         }
 
-        private void ListRootDir(
-            BlockGroupDescriptor blockGroup,ExtendedSuperBlock esb,
+        private void ListDir(Inode inode,ExtendedSuperBlock esb,
         SuperBlockEnum spb) {
             uint count;
             if (spb.MajorPortion>=1) {
@@ -226,10 +247,8 @@ namespace TerminalOS_L.FileSystemR.Linux {
             } else {
                 count = 128;
             }
-            uint Length = (uint)(spb.NumberofInodes/((1024<<(int)spb.BlockSize)/count));
             byte[] buffer = new byte[count];
-            //Jump into root dir (/)
-            ata.Read28((int)(LBA_Start + (blockGroup.InodeTable+Length)*2), (int)count,ref buffer);
+            ata.Read28((int)(LBA_Start + Block2LBA(inode.DirectBlockPointer0)), (int)count,ref buffer);
             using var diren_root = new BinaryReader(new MemoryStream(buffer));
             int count_dir = 0;
 
@@ -256,16 +275,15 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 }
                 count_dir++;
             }
-            Console.WriteLine("Root Dir: ");
             for (int i=0;i<count_dir;i++) 
             {
                 var builder = new StringBuilder();
                 switch(root[i].TypeIndicator) {
                     case 1:
-                        builder.AppendFormat("File Name: {0}",Encoding.ASCII.GetString(root[i].Name));
+                        builder.AppendFormat("{0}",Encoding.ASCII.GetString(root[i].Name));
                         break;
                     case 2:
-                        builder.AppendFormat("Directory: {0}",Encoding.ASCII.GetString(root[i].Name));
+                        builder.AppendFormat("{0}/",Encoding.ASCII.GetString(root[i].Name));
                         break;
                 }
                 Console.WriteLine(builder.ToString());
