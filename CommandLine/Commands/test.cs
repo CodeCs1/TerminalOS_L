@@ -39,6 +39,19 @@ namespace TerminalOS_L {
             Console.WriteLine(build2.ToString());
             // Uncomment this to start the BSOD test.
             //DeathScreen screen = new("Test passed.");screen.DrawGUI();
+            if (Mount.ata == null) {
+                Console.WriteLine("ATA Need to be mounted.");
+                return "Failed.";
+            }
+
+            byte[] data = {
+                1,2,3,4,5
+            };
+            Mount.ata.Write28(0,data.Length,ref data);
+            byte[] return_ = new byte[5];
+            Mount.ata.Read28(0,data.Length,ref return_);
+            Kernel.PrintByteArray(return_);
+
             Message.Send("If you gone this far, then congrat!");
 
             return "";

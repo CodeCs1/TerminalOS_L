@@ -5,6 +5,7 @@ using TerminalOS_L.Misc;
 
 namespace TerminalOS_L {
     public class Mount : Command {
+        public static ATA ata;
         public Mount(string name) : base(name) {}
         public override string Execute(string[] args)
         {
@@ -13,7 +14,6 @@ namespace TerminalOS_L {
                 Console.WriteLine("Usage: mount IDE_<0->4> ");
                 return "Less argsuments";
             }
-            ATA ata;
             switch (args[0]) {
                 case "IDE_0":
                     ata = new(0x1f0, true);

@@ -146,22 +146,24 @@ namespace TerminalOS_L.FileSystemR.Linux {
 
             return 0; 
         }
-        public override void List(string Path) {
+        public override void List() {
             Inode Root = GetInodeInfo(2,bgd,esb,spb);
-            if (Path == "/") {
+            //Message.Send_Warning("Still in development!");
+            DirectoryEntry[] en = GetDirectoryEntry(Root, esb, spb);
+            if (Getroot.Path == "/") {
                 ListDir(Root);
-            } else {
-                //TODO
-                //Message.Send_Warning("Still in development!");
-                string[] spl = Path.Split('/');
-                foreach(string path_ in spl) {
-                    if (path_ == string.Empty) continue;
-                    DirectoryEntry[] en = GetDirectoryEntry(Root, esb, spb);
-                    for (int i=0;i<en.Length;i++) {
-                        if (Encoding.ASCII.GetString(en[i].Name).Equals(path_)) {
-                            ListDir(GetInodeInfo((int)en[i].inode,bgd,esb,spb));
-                            break;
-                        }
+                return;
+            }
+            string[] spl = Getroot.Path.Split('/');
+            foreach(string path_ in spl) {
+                if (path_ == string.Empty) continue;
+                for (int i=0;i<en.Length;i++) {
+                    if (Encoding.ASCII.GetString(en[i].Name)==path_ && en[i].TypeIndicator == 2) {
+                        Console.WriteLine($"Getting Inode Number {en[i].inode}");
+                        ListDir(GetInodeInfo((int)en[i].inode,bgd,esb,spb));
+                        break;
+                    } else {
+                        Message.Send_Log($"Getting path: {Encoding.ASCII.GetString(en[i].Name)}");
                     }
                 }
             }
@@ -214,10 +216,10 @@ namespace TerminalOS_L.FileSystemR.Linux {
             int _index_=0;
             int Split = (int)(512 / count);
             for (int i=1;i<=Length;i++) {
+                if (i == index) {
+                    break;
+                }
                 if (i % Split == 0) {
-                    if (i == index) {
-                        break;
-                    }
                     _index_++;
                 }
             }
@@ -268,24 +270,24 @@ namespace TerminalOS_L.FileSystemR.Linux {
         }
         public override void ChangePath(string path)
         {
-            if (path != "..") {
-                Getroot.Path+=path;
-            } else {
-                Getroot.Path = "/"; 
-            }
             string[] spl = path.Split('/');
             Inode inode = GetInodeInfo(2,bgd,esb,spb); // Get root Inode
+            DirectoryEntry[] en = GetDirectoryEntry(inode, esb, spb);
+            bool ok = false;
             foreach(string path_ in spl) {
                 if (path_ == string.Empty) continue;
-                DirectoryEntry[] en = GetDirectoryEntry(inode, esb, spb);
                 for (int i=0;i<en.Length;i++) {
-                    if (Encoding.ASCII.GetString(en[i].Name).Equals(path_)) {
+                    if (Encoding.ASCII.GetString(en[i].Name) == path_) {
                         inode = GetInodeInfo((int)en[i].inode,bgd,esb,spb);
-                        ListDir(inode);
+                        ok = true;
                         break;
+                    } else {
+                        Message.Send_Log($"Getting path: {Encoding.ASCII.GetString(en[i].Name)}");
                     }
                 }
             }
+            if (ok) Getroot.Path += path;
+            else Console.WriteLine("Folder not exist.");
         }
         private DirectoryEntry[] GetDirectoryEntry(Inode inode,ExtendedSuperBlock esb,
         SuperBlockEnum spb) {

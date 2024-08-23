@@ -264,25 +264,66 @@ namespace TerminalOS_L.Driver {
             }
             Delay40NS();
         }
+
+        public void Write28(int LBA, int Count,ref byte[] data) {
+            if (IsCDRom) {
+                Message.Send_Warning("Can't write to CD-Rom!");
+                return;
+            }
+            ATARegisters.DriveRegisters = (byte)((IsMaster ? 0xe0 : 0xf0) | ((IsMaster ? 0 : 1) << 4) | ((LBA >> 24) & 0x0F));
+            ATARegisters.FeaturesRegister = 0x00;
+            ATARegisters.SectorCountRegister = 1;
+            ATARegisters.LBALow = (byte)(LBA & 0xff);
+            ATARegisters.LBAMid = (byte)((LBA >> 8)& 0xff);
+            ATARegisters.LBAHi = (byte)((LBA >> 16) & 0xff);
+            ATARegisters.CommandRegisters =0x30;
+            while((ATARegisters.StatusRegisters & 0x80) != 0);
+            if ((ATARegisters.StatusRegisters & 0x01) != 0) {
+                Message.Send_Error("Error while write sectors!");
+                return;
+            } else if (GetBitsSet(ATARegisters.StatusRegisters,5) != 0) {
+                Message.Send_Error("Drive Fault.");
+                return;
+            } else if (GetBitsSet(ATARegisters.StatusRegisters, 3) == 0) {
+                Message.Send_Error("The device is not accept PIO data!");
+                return;
+            }
+            Message.Send("Writing to LBA...");
+
+            for (int i=0;i<Count;i++) {
+                //ATARegisters.DataRegister = (ushort)(data[i] | (data[i+1]<<8));
+                Console.Write($"Written: {i} ");
+                ushort wdata = data[i];
+                if (i+1<Count) 
+                    wdata|= (ushort)(data[i+1]<<8);
+
+                ATARegisters.DataRegister = wdata;
+                i++;
+            }
+            Message.Send_Log("Completed!");
+            Flush(); // Don't forget to flush the device!
+            Message.Send_Log("Completed in flushing device!");
+        }
         ///<summary>
         /// Flushes the ATA device by sending a flush command and waiting for the operation to complete.
         /// </summary>
 
         private void Flush() {
-            ATARegisters.DriveRegisters = (byte)(IsMaster ? 0xe0:0xf0);
+            ATARegisters.DriveRegisters = (byte)(IsMaster ? 0xe0 : 0xf0);
             ATARegisters.CommandRegisters = 0xe7;
             if (ATARegisters.StatusRegisters == 0x00) {
                 return;
             }
 
-
+            Message.Send_Log("Flushing...");
             while ((ATARegisters.StatusRegisters & 0x80) != 0);
-            while((ATARegisters.StatusRegisters & 0x01) == 0);
 
             if ((ATARegisters.StatusRegisters &0x01) != 0) {
                 Message.Send_Error("Flush failed!");
                 return;
             }
+
+            Message.Send_Log("Flush succeeded!");
         }
 
         public static void Delay40NS() {
