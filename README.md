@@ -16,6 +16,7 @@ To compile this, open up your favorite Terminal and type this command:
 ```sh
 dotnet build
 ```
+Or if you're using Visual Studio, just click on Build -> Build Solution
 
 * Road Map:
     - [x] A custom ATA PIO Driver.
@@ -28,6 +29,7 @@ dotnet build
     - [ ] A custom ATAPI Driver.<sup>CDRom driver</sup>
     - [ ] Porting lua programming language.
     - [ ] ELF Reader and Loader.<sup>Exe file as well</sup>
+    - [ ] Windows-like path
 
 
 [^1]: I don't know if Cosmos C# is support MacOS
