@@ -17,7 +17,8 @@ namespace TerminalOS_L {
                 new Mount("mount"),
                 new Getroot("getroot"),
                 new ls("ls"),
-                new Viewpad()
+                new Viewpad(),
+                new cd()
             };
         }
 

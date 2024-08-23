@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 using TerminalOS_L.Driver;
+using TerminalOS_L.Misc;
 
 // Some resource that helping me in making this driver:
 // https://wiki.osdev.org/Ext2
@@ -151,7 +152,18 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 ListDir(Root);
             } else {
                 //TODO
-                Message.Send_Warning("Still in development!");
+                //Message.Send_Warning("Still in development!");
+                string[] spl = Path.Split('/');
+                foreach(string path_ in spl) {
+                    if (path_ == string.Empty) continue;
+                    DirectoryEntry[] en = GetDirectoryEntry(Root, esb, spb);
+                    for (int i=0;i<en.Length;i++) {
+                        if (Encoding.ASCII.GetString(en[i].Name).Equals(path_)) {
+                            ListDir(GetInodeInfo((int)en[i].inode,bgd,esb,spb));
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -174,9 +186,9 @@ namespace TerminalOS_L.FileSystemR.Linux {
             DirectoryEntry[] en = GetDirectoryEntry(Root, esb, spb);
             for (int i=0;i<en.Length;i++) {
                 if (Encoding.ASCII.GetString(en[i].Name).Equals(path)) {
-                    byte[] buffer = new byte[en[i].TotalSize];
                     Inode Block = GetInodeInfo((int)en[i].inode,bgd,esb,spb);
-                    ata.Read28((int)(LBA_Start +Block2LBA(Block.DirectBlockPointer0)), (int)en[i].TotalSize,ref buffer);
+                    byte[] buffer = new byte[Block.SizeinBytes];
+                    ata.Read28((int)(LBA_Start +Block2LBA(Block.DirectBlockPointer0)), (int)Block.SizeinBytes,ref buffer);
                     return Encoding.ASCII.GetString(buffer);
                 }
             }
@@ -253,6 +265,27 @@ namespace TerminalOS_L.FileSystemR.Linux {
             };
 
             return inode;
+        }
+        public override void ChangePath(string path)
+        {
+            if (path != "..") {
+                Getroot.Path+=path;
+            } else {
+                Getroot.Path = "/"; 
+            }
+            string[] spl = path.Split('/');
+            Inode inode = GetInodeInfo(2,bgd,esb,spb); // Get root Inode
+            foreach(string path_ in spl) {
+                if (path_ == string.Empty) continue;
+                DirectoryEntry[] en = GetDirectoryEntry(inode, esb, spb);
+                for (int i=0;i<en.Length;i++) {
+                    if (Encoding.ASCII.GetString(en[i].Name).Equals(path_)) {
+                        inode = GetInodeInfo((int)en[i].inode,bgd,esb,spb);
+                        ListDir(inode);
+                        break;
+                    }
+                }
+            }
         }
         private DirectoryEntry[] GetDirectoryEntry(Inode inode,ExtendedSuperBlock esb,
         SuperBlockEnum spb) {

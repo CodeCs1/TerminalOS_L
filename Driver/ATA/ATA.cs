@@ -52,10 +52,73 @@ namespace TerminalOS_L.Driver {
 
             return ATARegisters.StatusRegisters;
         }
+        public void Read28(int LBA, int Count,ref byte[] data) {
+            byte[] Read_cmd = new byte[12] {
+                0xA8, 0, (byte)((LBA>>0x18)&0xff),
+                (byte)((LBA>>0x10)&0xff),
+                (byte)((LBA>>8)&0xff),
+                (byte)((LBA>>0)&0xff),
+                (byte)((Count>>0x18)&0xff),
+                (byte)((Count>>0x10)&0xff),
+                (byte)((Count>>8)&0xff),
+                (byte)((Count>>0)&0xff),
+                0,0
+            };
+            ATARegisters.DriveRegisters = (byte)(0xA0 & ((IsMaster ? 0 : 1)<<4));
+            ATA.Delay40NS();
+            ATARegisters.FeaturesRegister = 0x00;
+            ATARegisters.LBAMid = 2048 & 0xff;
+            ATARegisters.LBAHi = 2048 >> 8;
+            ATARegisters.CommandRegisters = 0xA0;
+            ATA.Delay40NS();
+            while(true) {
+                byte status = ATARegisters.StatusRegisters;
+                if ((status & 0x01) == 1) {
+                    Message.Send_Error("Error when reading ATAPI device!");
+                    return ;
+                }
+                if ((status & 0x80) == 0 && (status & 0x80) != 0) {
+                    break;
+                }
+                ATA.Delay40NS();
+            }
+            byte[] array = new byte[2048];
+            ushort[] buffer = new ushort[1024];
+            for (int i=0;i<buffer.Length;i++) {
+                var b1 = (byte)buffer[i];
+                var b2 = (byte)buffer[i+1];
+                var Data = BitConverter.ToUInt16(new byte[] {b1, b2}, 0);
+                ATARegisters.DataRegister = Data;
+                i++;
+            }
+            var t = ATARegisters.LBAMid << 8;
+            var sz = t | ATARegisters.LBALow;
+            if (sz != 2048) {
+                Message.Send_Error("Size Mismatch!");
+                return ;
+            }
+            if (sz != 0) {
+                for (int i=0;i<1024;i++) {
+                    buffer[i] = ATARegisters.DataRegister;
+                }
+            }
+            /*
+            unsafe {
+                fixed(byte* ptr = array) {
+                    fixed (ushort* ptr2 = buffer) {
+                        byte* ptr3 = (byte*)ptr2;
+                        MemoryOperations.Copy(ptr, ptr3, 2048);
+                    }
+                }
+            }*/
+            data = array;
+
+        }
     }
 
     public class ATA {
         public bool IsMaster;
+        public static bool IsCDRom=false;
         public ATA(ushort Port, bool IsMaster) {
             this.IsMaster = IsMaster;
             _= new ATARegisters(Port);
@@ -114,8 +177,9 @@ namespace TerminalOS_L.Driver {
             while ((ATARegisters.StatusRegisters & 0x80) != 0);
             if (ATARegisters.LBAMid != 0 && ATARegisters.LBAHi != 0) {
                 //The device is ATAPI device
-                //new ATAPI((ushort)ATARegisters.LBALow, IsMaster).Identify();
-                Message.Send_Error("ATAPI device is not supported yet!");
+                new ATAPI(ATARegisters.Port, IsMaster).Identify();
+                //Message.Send_Error("ATAPI device is not supported yet!");
+                IsCDRom=true;
                 return 0;
             }
             Message.Send_Log("Testing Device...");
@@ -167,6 +231,10 @@ namespace TerminalOS_L.Driver {
 
 
         public void Read28(int LBA, int Count,ref byte[] data) {
+            if (IsCDRom) {
+                new ATAPI(ATARegisters.Port, IsMaster).Read28(LBA, 1,ref data);
+                return;
+            }
             ATARegisters.DriveRegisters = (byte)((IsMaster ? 0xe0 : 0xf0) | ((IsMaster ? 0 : 1) << 4) | ((LBA >> 24) & 0x0F));
             ATARegisters.FeaturesRegister = 0x00;
             ATARegisters.SectorCountRegister = 1;

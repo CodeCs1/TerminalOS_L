@@ -13,6 +13,7 @@ namespace TerminalOS_L.BuiltinProgram  {
                 return "No argument given";
             }
             try {
+                Console.WriteLine("[Viewpad]");
                 string rfile=Getroot.ext2.ReadFile(args[0]);
                 Console.WriteLine(rfile);
             } catch(Exception ex) {

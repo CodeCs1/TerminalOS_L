@@ -16,6 +16,8 @@ namespace TerminalOS_L.FileSystemR {
         public virtual int Impl() {return 0;}
         public virtual string ReadFile(string path) { return ""; }
 
+        public virtual void ChangePath(string path) {}
+
         public virtual byte[] ReadFileBytes(string path) { return Encoding.ASCII.GetBytes(""); }
         public virtual void GetInfo() {}
         public virtual string DiskLabel {get;set;}
