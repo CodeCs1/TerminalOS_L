@@ -189,27 +189,19 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 if (path_ == string.Empty) continue;
                 for (int i=0;i<en.Length;i++) {
                     if (Encoding.ASCII.GetString(en[i].Name)==path_) {
-                        // Inode Block = GetInodeInfo((int)en[i].inode,bgd,esb,spb);
-                        // byte[] buffer = new byte[Block.SizeinBytes];
-                        // ata.Read28((int)(LBA_Start +Block2LBA(Block.DirectBlockPointer0)), (int)Block.SizeinBytes,ref buffer);
-                        // return Encoding.ASCII.GetString(buffer);
                         en = GetDirectoryEntry(GetInodeInfo((int)en[i].inode,bgd,esb,spb), esb, spb);
                         break;
-                    } else {
-                        Console.WriteLine($"Getting path: {en[i].Name}");
                     }
                 }
             }
-            /*
             for (int i=0;i<en.Length;i++) {
-                if (Encoding.ASCII.GetString(en[i].Name).Equals(filename)) {
+                if (Encoding.ASCII.GetString(en[i].Name)==filename) {
                     Inode Block = GetInodeInfo((int)en[i].inode,bgd,esb,spb);
                     byte[] buffer = new byte[Block.SizeinBytes];
                     ata.Read28((int)(LBA_Start +Block2LBA(Block.DirectBlockPointer0)), (int)Block.SizeinBytes,ref buffer);
                     return Encoding.ASCII.GetString(buffer);
                 }
             }
-*/
 
             return "";
         }
@@ -291,25 +283,41 @@ namespace TerminalOS_L.FileSystemR.Linux {
             Inode inode = GetInodeInfo(2,bgd,esb,spb); // Get root Inode
             DirectoryEntry[] en = GetDirectoryEntry(inode, esb, spb);
             bool ok = false;
+            if (path == "/") ok =true; // always
             foreach(string path_ in spl) {
                 if (path_ == string.Empty) continue;
                 for (int i=0;i<en.Length;i++) {
                     if (Encoding.ASCII.GetString(en[i].Name) == path_) {
-                        inode = GetInodeInfo((int)en[i].inode,bgd,esb,spb);
-                        ok = true;
-                        break;
+                        if (en[i].TypeIndicator == 2) {  
+                            inode = GetInodeInfo((int)en[i].inode,bgd,esb,spb);
+                            ok = true;
+                            break;
+                        } else {
+                            Console.WriteLine($"File {path[path.LastIndexOf('/')..]} is not a folder.");
+                            return;
+                        }
+                    } else {
+                        ok = false;
                     }
                 }
             }
-            if (ok) { 
-                if (path == "..") {
-                    if (Getroot.Path == "/") return;
-                    Getroot.Path = Getroot.Path.Remove(Getroot.Path.LastIndexOf('/'));
-                    if (Getroot.Path.Length == 0) Getroot.Path = "/";
-                } else {
-                    Getroot.Path += path;
+            if (ok) {
+                switch(path) {
+                    case "..":
+                        if (Getroot.Path == "/") return;
+                        Getroot.Path = Getroot.Path.Remove(Getroot.Path.LastIndexOf('/'));
+                        if (Getroot.Path.Length == 0) Getroot.Path = "/";
+                        break;
+                    case ".":
+                        return;
+                    case "/":
+                        Getroot.Path = "/";
+                        break;
+                    default:
+                        Getroot.Path += path;
+                        break;
                 }
-                }
+            }
             else Console.WriteLine("Folder not exist.");
         }
         private DirectoryEntry[] GetDirectoryEntry(Inode inode,ExtendedSuperBlock esb,
@@ -369,7 +377,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 root[count_dir].TypeIndicator = diren_root.ReadByte();
                 root[count_dir].Name =diren_root.ReadBytes((int)root[count_dir].NameLength);
 
-                //ye
+                // ye
                 // https://stackoverflow.com/questions/7648911/are-ext2-directory-entry-names-guaranteed-to-be-null-terminated-on-a-valid-file
                 if (root[count_dir].NameLength < 4) {
                     diren_root.BaseStream.Seek(4 - root[count_dir].NameLength,SeekOrigin.Current);

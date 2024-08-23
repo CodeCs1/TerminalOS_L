@@ -1,5 +1,5 @@
 /*Welcome to the world of Virtual File System!*/
-using System.Collections.Generic;
+//This used to replace the Cosmos VFS Driver.
 using System.Text;
 using TerminalOS_L.Driver;
 
