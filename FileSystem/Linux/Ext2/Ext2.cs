@@ -195,7 +195,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 }
             }
             for (int i=0;i<en.Length;i++) {
-                if (Encoding.ASCII.GetString(en[i].Name)==filename) {
+                if (Encoding.ASCII.GetString(en[i].Name)==filename && en[i].TypeIndicator != 2) {
                     Inode Block = GetInodeInfo((int)en[i].inode,bgd,esb,spb);
                     byte[] buffer = new byte[Block.SizeinBytes];
                     ata.Read28((int)(LBA_Start +Block2LBA(Block.DirectBlockPointer0)), (int)Block.SizeinBytes,ref buffer);
@@ -402,7 +402,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
                     case 1:
                         builder.AppendFormat("{0}    {1}",
                         Encoding.ASCII.GetString(root[i].Name), 
-                        root[i].TotalSize);
+                        inode.SizeinBytes);
                         break;
                     case 2:
                         builder.AppendFormat("{0}    <DIR>",Encoding.ASCII.GetString(root[i].Name));

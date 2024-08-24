@@ -35,12 +35,14 @@ namespace TerminalOS_L.Misc {
                     ext2 = new Ext2(ata, (uint)LBA_Start);
                     if (ext2.Impl() == -1) {
                         _ = new FAT32(ata, LBA_Start);
+                        return "";
                     }
                 } else {
                     int LBA_Start = (int)MBR.mbr_.Partitions[partition-1].LBAStart;
                     ext2 = new Ext2(ata, (uint)LBA_Start);
                     if (ext2.Impl() == -1) {
                         _ = new FAT32(ata, LBA_Start);
+                        return "";
                     }
                 }
                 Path = "/";

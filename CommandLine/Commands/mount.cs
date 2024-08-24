@@ -31,7 +31,10 @@ namespace TerminalOS_L {
                     Console.WriteLine("NO such IDE Device: {0}", args[0]);
                     return "No such IDE Device";
             }
-            ata.Identify();
+            if (ata.Identify() == 0) {
+                Console.WriteLine("Failed to mount IDE Device: {0}", args[0]);
+                return "Failed to mount IDE Device";
+            }
             _ = new GPT(ata);
             if (!GPT.ISGpt()) // MBR Partition only support 4 Partitions
             {

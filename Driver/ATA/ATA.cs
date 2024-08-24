@@ -270,7 +270,7 @@ namespace TerminalOS_L.Driver {
                 Message.Send_Warning("Can't write to CD-Rom!");
                 return;
             }
-            ATARegisters.DriveRegisters = (byte)((IsMaster ? 0xe0 : 0xf0) | ((IsMaster ? 0 : 1) << 4) | ((LBA >> 24) & 0x0F));
+            ATARegisters.DriveRegisters = (byte)((IsMaster ? 0xe0 : 0xf0) | ((IsMaster ? 0 : 1) << 4) | ((LBA & 0x0f) >> 24));
             ATARegisters.FeaturesRegister = 0x00;
             ATARegisters.SectorCountRegister = 1;
             ATARegisters.LBALow = (byte)(LBA & 0xff);
@@ -291,12 +291,9 @@ namespace TerminalOS_L.Driver {
             Message.Send("Writing to LBA...");
 
             for (int i=0;i<Count;i++) {
-                //ATARegisters.DataRegister = (ushort)(data[i] | (data[i+1]<<8));
-                Console.Write($"Written: {i} ");
                 ushort wdata = data[i];
                 if (i+1<Count) 
                     wdata|= (ushort)(data[i+1]<<8);
-
                 ATARegisters.DataRegister = wdata;
                 i++;
             }
@@ -309,7 +306,8 @@ namespace TerminalOS_L.Driver {
         /// </summary>
 
         private void Flush() {
-            ATARegisters.DriveRegisters = (byte)(IsMaster ? 0xe0 : 0xf0);
+            ATARegisters.DriveRegisters = (byte)((IsMaster ? 0xe0 : 0xf0) | ((IsMaster ? 0 : 1) << 4));
+            ATARegisters.FeaturesRegister = 0x00;
             ATARegisters.CommandRegisters = 0xe7;
             if (ATARegisters.StatusRegisters == 0x00) {
                 return;
