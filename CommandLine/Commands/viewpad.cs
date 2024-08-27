@@ -15,7 +15,7 @@ namespace TerminalOS_L.BuiltinProgram  {
             try {
                 Console.WriteLine("[Viewpad]");
                 string rfile=Getroot.ext2.ReadFile(args[0]);
-                Console.WriteLine(rfile);
+                Console.Write(rfile);
             } catch(Exception ex) {
                 DeathScreen d = new(ex.Message);
                 d.DrawGUI();

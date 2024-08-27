@@ -402,12 +402,30 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 switch(root[i].TypeIndicator) {
                     case 1:
                         Inode file = GetInodeInfo((int)root[i].inode, bgd, esb, spb);
-                        builder.AppendFormat("{0}    {1}",
-                        Encoding.ASCII.GetString(root[i].Name),
-                        file.SizeinBytes);
+                        string filename = Encoding.ASCII.GetString(root[i].Name);
+                        if (filename.Length > 16) {
+                            filename = filename[..16];
+                            filename += "...";
+                        }
+                        builder.AppendFormat("{0}",
+                        filename);
+                        for (int j =0;j<20-root[i].NameLength;j++) {
+                            builder.Append(' ');
+                        }
+                        builder.AppendFormat($"{file.SizeinBytes} Byte(s)");
                         break;
                     case 2:
-                        builder.AppendFormat("{0}    <DIR>",Encoding.ASCII.GetString(root[i].Name));
+                        string folder_name = Encoding.ASCII.GetString(root[i].Name);
+                        if (folder_name.Length > 16) {
+                            folder_name = folder_name[..16];
+                            folder_name += "...";
+                        }
+                        builder.AppendFormat("{0}",folder_name);
+
+                        for (int j =0;j<20-root[i].NameLength;j++) {
+                            builder.Append(' ');
+                        }
+                        builder.AppendFormat($"<DIR>");
                         break;
                 }
                 Console.WriteLine(builder.ToString());
