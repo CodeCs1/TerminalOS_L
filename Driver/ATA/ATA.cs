@@ -271,6 +271,22 @@ namespace TerminalOS_L.Driver {
                 return;
             }
             ATARegisters.DriveRegisters = (byte)((IsMaster ? 0xe0 : 0xf0) | ((IsMaster ? 0 : 1) << 4) | ((LBA & 0x0f) >> 24));
+            ATARegisters.ControlRegisters=0;
+
+            if (ATARegisters.StatusRegisters == 0xff) {
+                ATARegisters.DriveRegisters = (byte)(IsMaster ? 0xA0 : 0xB0);
+                if (ATARegisters.StatusRegisters == 0xff) {
+                    Message.Send_Error("No Devices were found to write!");
+                    return;
+                }
+                else {
+                    Message.Send_Log("Writting mode changed to A0 : B0");
+                }
+            } else {
+                Message.Send_Log("Keeping Drive Selector to E0 : F0");
+            }
+
+            ATARegisters.DriveRegisters = (byte)((IsMaster ? 0xe0 : 0xf0) | ((IsMaster ? 0 : 1) << 4) | ((LBA & 0x0f) >> 24));
             ATARegisters.FeaturesRegister = 0x00;
             ATARegisters.SectorCountRegister = 1;
             ATARegisters.LBALow = (byte)(LBA & 0xff);
@@ -278,6 +294,7 @@ namespace TerminalOS_L.Driver {
             ATARegisters.LBAHi = (byte)((LBA >> 16) & 0xff);
             ATARegisters.CommandRegisters =0x30;
             while((ATARegisters.StatusRegisters & 0x80) != 0);
+            while ((ATARegisters.StatusRegisters & 0x08) == 0);
             if ((ATARegisters.StatusRegisters & 0x01) != 0) {
                 Message.Send_Error("Error while write sectors!");
                 return;
@@ -300,12 +317,27 @@ namespace TerminalOS_L.Driver {
             Message.Send_Log("Completed!");
             Flush(); // Don't forget to flush the device!
             Message.Send_Log("Completed in flushing device!");
+
         }
         ///<summary>
         /// Flushes the ATA device by sending a flush command and waiting for the operation to complete.
         /// </summary>
 
         private void Flush() {
+            ATARegisters.DriveRegisters = (byte)((IsMaster ? 0xe0 : 0xf0) | ((IsMaster ? 0 : 1) << 4));
+            ATARegisters.ControlRegisters=0;
+            if (ATARegisters.StatusRegisters == 0xff) {
+                ATARegisters.DriveRegisters = (byte)(IsMaster ? 0xA0 : 0xB0);
+                if (ATARegisters.StatusRegisters == 0xff) {
+                    Message.Send_Error("No Devices were found to write!");
+                    return;
+                }
+                else {
+                    Message.Send_Log("Writting mode changed to A0 : B0");
+                }
+            } else {
+                Message.Send_Log("Keeping Drive Selector to E0 : F0");
+            }
             ATARegisters.DriveRegisters = (byte)((IsMaster ? 0xe0 : 0xf0) | ((IsMaster ? 0 : 1) << 4));
             ATARegisters.FeaturesRegister = 0x00;
             ATARegisters.CommandRegisters = 0xe7;
@@ -315,6 +347,8 @@ namespace TerminalOS_L.Driver {
 
             Message.Send_Log("Flushing...");
             while ((ATARegisters.StatusRegisters & 0x80) != 0);
+
+            Message.Send_Log($"Got Status: {ATARegisters.StatusRegisters}");
 
             if ((ATARegisters.StatusRegisters &0x01) != 0) {
                 Message.Send_Error("Flush failed!");

@@ -92,6 +92,7 @@ namespace TerminalOS_L
             }while(k != ConsoleKey.Enter);
             Password=pass;
             Console.WriteLine();
+	    //	    Console.WriteLine("No mail.");
         }
 
         public static StringBuilder v = new();
@@ -188,7 +189,7 @@ namespace TerminalOS_L
         protected override void Run()
         {
             var input = ReadLine();
-            cm.Input(input);
+            Console.WriteLine(cm.Input(input));
             v=new();
         }
 

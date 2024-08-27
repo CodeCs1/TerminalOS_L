@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Text;
+using CosmosBuiltin = Cosmos.Core.IOGroup;
+using Cosmos.HAL.BlockDevice;
 using TerminalOS_L.Driver;
 using TerminalOS_L.System;
 
@@ -44,17 +46,24 @@ namespace TerminalOS_L {
                 return "Failed.";
             }
 
-            byte[] data = {
-                1,2,3,4,5
-            };
-            Mount.ata.Write28(0,data.Length,ref data);
-            byte[] return_ = new byte[5];
-            Mount.ata.Read28(0,data.Length,ref return_);
-            Kernel.PrintByteArray(return_);
+            byte[] data = new byte[5];
+            data[0] = (byte)'A';
+            data[1] = (byte)'V';
+            data[2] = (byte)'B';
+            data[3] = (byte)'B';
+            data[4] = (byte)'B'; 
+            Kernel.PrintByteArray(data); 
+            Mount.ata.Write28(3,data.Length,ref data);
+            for (int i=0;i<10;i++) {
+                byte[] dataread = new byte[256];
+                Mount.ata.Read28(i,256,ref dataread);
+                Kernel.PrintByteArray(dataread);
+                Console.ReadLine();
+            }
 
             Message.Send("If you gone this far, then congrat!");
 
             return "";
         }
     }
-}
+}   

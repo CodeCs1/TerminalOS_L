@@ -32,7 +32,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
         public override ATA ATA => ata;
         public override string Type => "EXT2";
 
-        
+
         private static uint Block2LBA(uint block_no) {
             return block_no*2;
         }
@@ -144,7 +144,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 Console.WriteLine(build2.ToString());
             }
 
-            return 0; 
+            return 0;
         }
         public override void List() {
             Inode Root = GetInodeInfo(2,bgd,esb,spb);
@@ -166,7 +166,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
             }
         }
 
-        public override string DiskLabel { 
+        public override string DiskLabel {
             get {
                 if (spb.MajorPortion>=1) {
                     return Encoding.ASCII.GetString(esb.VolumeName);
@@ -178,6 +178,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 throw new NotImplementedException();
             }
         }
+
         public override string ReadFile(string path)
         {
             Inode Root = GetInodeInfo(2,bgd,esb,spb);
@@ -288,7 +289,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 if (path_ == string.Empty) continue;
                 for (int i=0;i<en.Length;i++) {
                     if (Encoding.ASCII.GetString(en[i].Name) == path_) {
-                        if (en[i].TypeIndicator == 2) {  
+                        if (en[i].TypeIndicator == 2) {
                             inode = GetInodeInfo((int)en[i].inode,bgd,esb,spb);
                             ok = true;
                             break;
@@ -395,14 +396,15 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 count_dir++;
             }
 
-            for (int i=0;i<count_dir;i++) 
+            for (int i=0;i<count_dir;i++)
             {
                 var builder = new StringBuilder();
                 switch(root[i].TypeIndicator) {
                     case 1:
+                        Inode file = GetInodeInfo((int)root[i].inode, bgd, esb, spb);
                         builder.AppendFormat("{0}    {1}",
-                        Encoding.ASCII.GetString(root[i].Name), 
-                        inode.SizeinBytes);
+                        Encoding.ASCII.GetString(root[i].Name),
+                        file.SizeinBytes);
                         break;
                     case 2:
                         builder.AppendFormat("{0}    <DIR>",Encoding.ASCII.GetString(root[i].Name));

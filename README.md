@@ -22,7 +22,7 @@ Or if you're using Visual Studio, just click on Build -> Build Solution
     - [x] A custom ATA PIO Driver.
     - [x] GUI forked from Win 1.0.<sup>Just done the basic</sup>
     - [x] MBR and GPT Partition table.
-    - [x] Ext2, FAT32 File System Support.
+    - [x] Ext2, FAT32 File System Support.<sup>Read-only</sup>
     - [ ] Network Support.
     - [ ] EXT3/EXT4, NTFS File System Support.
     - [ ] A VFS replacement.
