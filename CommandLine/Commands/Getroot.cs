@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 using TerminalOS_L.Driver;
 using TerminalOS_L.FileSystemR;
 using TerminalOS_L.FileSystemR.Linux;
@@ -10,7 +10,13 @@ namespace TerminalOS_L.Misc {
         public Getroot(string name) : base(name) { }
         public static ATA ata {get;set;}
         public static string Path {get;set;}
-        public static Ext2 ext2 {get;set;}
+        private static uint initLBA=0;
+        //public static Ext2 ext2 {get;set;}
+        public static int RegisteredVFSIndex=0;
+        public static List<VFS> RegisteredVFS = new()
+        {
+            new Ext2(ata)
+        };
         public override string Execute(string[] args) {
             // getroot /dev/sda<partition number>
             if (args.Length < 1) {
@@ -31,19 +37,17 @@ namespace TerminalOS_L.Misc {
                 }
 
                 if (GPT.ISGpt()) {
-                    int LBA_Start = (int)GPT.type[partition-1].StartingLBA;
-                    ext2 = new Ext2(ata, (uint)LBA_Start);
-                    if (ext2.Impl() == -1) {
-                        _ = new FAT32(ata, LBA_Start);
-                        return "";
-                    }
+                    initLBA = (uint)GPT.type[partition-1].StartingLBA;
                 } else {
-                    int LBA_Start = (int)MBR.mbr_.Partitions[partition-1].LBAStart;
-                    ext2 = new Ext2(ata, (uint)LBA_Start);
-                    if (ext2.Impl() == -1) {
-                        _ = new FAT32(ata, LBA_Start);
-                        return "";
+                    initLBA = MBR.mbr_.Partitions[partition-1].LBAStart;
+                }
+                RegisteredVFSIndex=0;
+                foreach(VFS vfs in RegisteredVFS) {
+                    vfs.LBA_Start = initLBA;
+                    if (vfs.Impl() != -1) {
+                        break;
                     }
+                    RegisteredVFSIndex++;
                 }
                 Path = "/";
 

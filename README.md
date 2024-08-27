@@ -29,8 +29,11 @@ Or if you're using Visual Studio, just click on Build -> Build Solution
     - [ ] A custom ATAPI Driver.<sup>CDRom driver</sup>
     - [ ] Porting lua programming language.
     - [ ] ELF Reader and Loader.<sup>Exe file as well</sup>
-    - [ ] Windows-like path
+    - [ ] Windows-like path.
+    - [ ] AHCI, NVMe[^3] Driver Support.
+    - [ ] Floppy Disk Driver Support.
 
 
 [^1]: I don't know if Cosmos C# is support MacOS
 [^2]: UserKit is ok, but I recommend using DevKit for better performance or something.
+[^3]: If Cosmos support Paging.

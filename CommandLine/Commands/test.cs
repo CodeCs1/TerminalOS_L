@@ -10,6 +10,10 @@ namespace TerminalOS_L {
             //MemoryStream memtest2 = new(a);
     public class TestCase : Command {
         public TestCase (string name) : base(name) {}
+        public struct Test1 {
+            [BitField(5)]
+            public byte test1;
+        }
         public override string Execute(string[] args)
         {
             Console.WriteLine("All test case will be placed in this test command");

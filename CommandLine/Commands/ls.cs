@@ -9,7 +9,7 @@ namespace TerminalOS_L.BuiltinProgram {
         }
         public override string Execute(string[] args) {
             if (args.Length < 1) {
-                Getroot.ext2.List();
+                Getroot.RegisteredVFS[Getroot.RegisteredVFSIndex].List();
                 return "";
             } else {
                 Console.WriteLine("Not support path listing yet.");

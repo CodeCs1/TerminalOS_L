@@ -9,7 +9,7 @@ namespace TerminalOS_L.BuiltinProgram {
                 Console.WriteLine("Usage: cd <path>");
                 return "Not enough arguments";
             }
-            Getroot.ext2.ChangePath(args[0]);
+            Getroot.RegisteredVFS[Getroot.RegisteredVFSIndex].ChangePath(args[0]);
             return "";
         }
     }

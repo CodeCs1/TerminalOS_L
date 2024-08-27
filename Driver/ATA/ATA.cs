@@ -315,8 +315,8 @@ namespace TerminalOS_L.Driver {
                 i++;
             }
             Message.Send_Log("Completed!");
+            Delay40NS();
             Flush(); // Don't forget to flush the device!
-            Message.Send_Log("Completed in flushing device!");
 
         }
         ///<summary>

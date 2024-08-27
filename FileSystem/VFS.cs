@@ -12,7 +12,7 @@ using TerminalOS_L.Driver;
 
 namespace TerminalOS_L.FileSystemR {
     public abstract class VFS {
-        public VFS(ATA ata,uint LBA_Start) {}
+        public VFS(ATA ata) {}
         public virtual int Impl() {return 0;}
         public virtual string ReadFile(string path) { return ""; }
 

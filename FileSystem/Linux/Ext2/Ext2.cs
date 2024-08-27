@@ -12,7 +12,6 @@ using TerminalOS_L.Misc;
 namespace TerminalOS_L.FileSystemR.Linux {
     public class Ext2 : VFS {
 
-
         public struct DirectoryEntry {
             public uint inode;
             public uint TotalSize;
@@ -23,12 +22,13 @@ namespace TerminalOS_L.FileSystemR.Linux {
 
         public ATA ata;
         public Inode inode;
-        public new uint LBA_Start;
 
-        public Ext2(ATA ata,uint initLBA) : base(ata,initLBA) {
+        public Ext2(ATA ata) : base(ata) {
             this.ata = ata;
-            this.LBA_Start=initLBA;
         }
+
+        public override uint LBA_Start { get => base.LBA_Start; set => base.LBA_Start = value; }
+
         public override ATA ATA => ata;
         public override string Type => "EXT2";
 
