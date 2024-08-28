@@ -45,24 +45,28 @@ namespace TerminalOS_L {
             Console.WriteLine(build2.ToString());
             // Uncomment this to start the BSOD test.
             //DeathScreen screen = new("Test passed.");screen.DrawGUI();
-            if (Mount.ata == null) {
-                Console.WriteLine("ATA Need to be mounted.");
-                return "Failed.";
-            }
-
-            byte[] data = new byte[5];
-            data[0] = (byte)'A';
-            data[1] = (byte)'V';
-            data[2] = (byte)'B';
-            data[3] = (byte)'B';
-            data[4] = (byte)'B'; 
-            Kernel.PrintByteArray(data); 
-            Mount.ata.Write28(3,data.Length,ref data);
-            for (int i=0;i<10;i++) {
-                byte[] dataread = new byte[256];
-                Mount.ata.Read28(i,256,ref dataread);
-                Kernel.PrintByteArray(dataread);
-                Console.ReadLine();
+            if (!Driver.AHCI.IsAHCI()) {
+                if (Mount.ata == null) {
+                    Console.WriteLine("ATA Need to be mounted.");
+                    return "Failed.";
+                }
+                byte[] data = new byte[5];
+                data[0] = (byte)'A';
+                data[1] = (byte)'V';
+                data[2] = (byte)'B';
+                data[3] = (byte)'B';
+                data[4] = (byte)'B'; 
+                Kernel.PrintByteArray(data); 
+                Mount.ata.Write28(3,data.Length,ref data);
+                for (int i=0;i<10;i++) {
+                    byte[] dataread = new byte[256];
+                    Mount.ata.Read28(i,256,ref dataread);
+                    Kernel.PrintByteArray(dataread);
+                    Console.ReadLine();
+                }
+            } else {
+                Driver.AHCI _ = new();
+                Message.Send_Warning("AHCI Driver isn't implemented yet!");
             }
 
             Message.Send("If you gone this far, then congrat!");
