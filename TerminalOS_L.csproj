@@ -19,6 +19,9 @@
         <Description>Use VMware Player or Workstation to deploy and debug.</Description>
         <PxeInterface>192.168.0.8</PxeInterface>
     </PropertyGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="Windows_Based/Font/ter-v16n.psf"/>
+    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Cosmos.Build" Version="0-*" NoWarn="NU1604" />

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using Cosmos.HAL;
+using TerminalOS_L.FrameBuffer;
 using TerminalOS_L.Misc;
 using Sys = Cosmos.System;
 
@@ -187,10 +188,10 @@ namespace TerminalOS_L
         }
         
         protected override void Run()
-        {
+        {   
+            v=new();
             var input = ReadLine();
             Console.WriteLine(cm.Input(input));
-            v=new();
         }
 
         protected override void AfterRun()

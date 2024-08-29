@@ -173,7 +173,7 @@ namespace TerminalOS_L.Driver {
             DriveNumber=drvnum;
 
             Message.Send_Log("Polling Device...");
-            //Polling unstil Staus Registers is clear
+            //Polling until Status Registers is clear
             while ((ATARegisters.StatusRegisters & 0x80) != 0);
             if (ATARegisters.LBAMid != 0 && ATARegisters.LBAHi != 0) {
                 //The device is ATAPI device

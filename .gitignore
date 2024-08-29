@@ -6,3 +6,4 @@ bin/*
 obj/*
 *.c
 ext2reader
+file2array

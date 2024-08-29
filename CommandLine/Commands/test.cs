@@ -46,10 +46,10 @@ namespace TerminalOS_L {
             // Uncomment this to start the BSOD test.
             //DeathScreen screen = new("Test passed.");screen.DrawGUI();
             if (!Driver.AHCI.IsAHCI()) {
-                if (Mount.ata == null) {
+                /*if (Mount.ata == null) {
                     Console.WriteLine("ATA Need to be mounted.");
                     return "Failed.";
-                }
+                } */
                 byte[] data = new byte[5];
                 data[0] = (byte)'A';
                 data[1] = (byte)'V';
@@ -63,11 +63,15 @@ namespace TerminalOS_L {
                     Mount.ata.Read28(i,256,ref dataread);
                     Kernel.PrintByteArray(dataread);
                     Console.ReadLine();
-                }
+                } 
             } else {
                 Driver.AHCI _ = new();
                 Message.Send_Warning("AHCI Driver isn't implemented yet!");
             }
+            _ = new Driver.NVMe();
+
+            /*FrameBuffer.FrConsole fr =new();
+            FrameBuffer.FrConsole.WriteLine("Done!");*/
 
             Message.Send("If you gone this far, then congrat!");
 
