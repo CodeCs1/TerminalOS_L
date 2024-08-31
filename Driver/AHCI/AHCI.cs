@@ -36,9 +36,11 @@ namespace TerminalOS_L.Driver {
             AHCI_Dev dev=new() {
                 Bar = pci.ReadRegister32(0x24), // Get BAR5 Register
             };
-            //I hate my life.
+            //?
             unsafe {
                 dev.mem = (HBA_MEM*)dev.Bar;
+                HBA_MEM mem = dev.mem[0];
+                Console.WriteLine($"{mem.port.Length}");
             }
             StringBuilder b=new();
             Console.WriteLine(b.ToString());

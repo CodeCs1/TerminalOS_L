@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using IL2CPU.API.Attribs;
+using TerminalOS_L.System;
 using XSharp;
 using XSharp.Assembler;
 using XSharp.Assembler.x86;
@@ -52,10 +53,13 @@ namespace TerminalOS_L.CosmosPort {
     }
     [Plug(Target = typeof(Paging))]
     public unsafe class PagingImpl {
-        internal static void Enable() {
+        [PlugMethod(Assembler =typeof(EnableAsm))]
+        public static void Enable() {
             throw new NotImplementedException("Why not ?");
         }
-        internal static void LoadPage(uint* addr) {
+
+        [PlugMethod(Assembler =typeof(LoadPageAsm))]
+        public static void LoadPage(uint* addr) {
             throw new NotImplementedException("Why not ?");
         }
     }
@@ -73,8 +77,12 @@ namespace TerminalOS_L.CosmosPort {
                 alt.FirstPage[i] = (i * 0x1000) | 3;
             }
             alt.PagingDir[0] = ((uint)alt.FirstPage) | 3;
-            LoadPage(alt.PagingDir);
-            Enable();
+            try {
+                LoadPage(alt.PagingDir);
+                Enable();
+            } catch (Exception ex) {
+                new DeathScreen(ex.Message).DrawGUI();
+            }
 
         }
 

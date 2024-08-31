@@ -80,6 +80,10 @@ namespace TerminalOS_L {
                         Sys.PCSpeaker.Beep();
                     }
 
+                    if (Sys.MouseManager.X == 640) {
+                        Sys.MouseManager.X = 0;
+                    }
+
                     exe.Init();
                     DrawCursor(Sys.MouseManager.X,Sys.MouseManager.Y);
                     canvas.Display();

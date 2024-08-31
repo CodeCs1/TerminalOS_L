@@ -72,7 +72,7 @@ namespace TerminalOS_L
             }
 
             // Doin some Paging boi.
-            Paging.Init(); // Why not ?
+            //Paging.Init(); // Why not ?
 
             Console.WriteLine("\nThis is root from Terminal OS.");
             Console.Write("root login: ");
