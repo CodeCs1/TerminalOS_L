@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using Cosmos.HAL;
+using TerminalOS_L.CosmosPort;
 using TerminalOS_L.FrameBuffer;
 using TerminalOS_L.Misc;
 using Sys = Cosmos.System;
@@ -69,6 +70,10 @@ namespace TerminalOS_L
                 Message.Send("Detected VMWare SVGA-II Device, Replacing VGA method...");
                 SVGASupport=true;
             }
+
+            // Doin some Paging boi.
+            Paging.Init(); // Why not ?
+
             Console.WriteLine("\nThis is root from Terminal OS.");
             Console.Write("root login: ");
             Username = Console.ReadLine();
