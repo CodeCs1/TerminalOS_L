@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Drawing;
 using System.Text;
 using Cosmos.HAL;
+using Cosmos.System.Graphics;
 using TerminalOS_L.CosmosPort;
 using TerminalOS_L.FrameBuffer;
 using TerminalOS_L.Misc;
@@ -61,44 +63,23 @@ namespace TerminalOS_L
 
         protected override void BeforeRun()
         {
-            Console.Clear();
-            Console.WriteLine("TerminalOS_L (TerminalOS reborn Linux version)");
-            Console.WriteLine($"Boot date: {DOW(RTC.DayOfTheWeek)} - {RTC.DayOfTheMonth}/{RTC.Month}/{RTC.Century}{RTC.Year} {RTC.Hour:D2}:{RTC.Minute:D2}:{RTC.Second:D2}");
+            _ = new FrConsole();
+            FrConsole.WriteLine("TerminalOS_L (TerminalOS reborn Linux version)");
+            FrConsole.WriteLine($"Boot date: {DOW(RTC.DayOfTheWeek)} - {RTC.DayOfTheMonth}/{RTC.Month}/{RTC.Century}{RTC.Year} {RTC.Hour:D2}:{RTC.Minute:D2}:{RTC.Second:D2}");
             cm = new CommandManager();
             PCIDevice dev = PCI.GetDevice(VendorID.VMWare,DeviceID.SVGAIIAdapter);
             if (dev.VendorID == (ushort)VendorID.VMWare && dev.DeviceID == (ushort)DeviceID.SVGAIIAdapter) {
+                //Message.Send("Detected VMWare SVGA-II Device, Replacing VGA method...");
                 Message.Send("Detected VMWare SVGA-II Device, Replacing VGA method...");
                 SVGASupport=true;
             }
+            Message.Send("Device connected!");
 
-            // Doin some Paging boi.
-            //Paging.Init(); // Why not ?
-
-            Console.WriteLine("\nThis is root from Terminal OS.");
-            Console.Write("root login: ");
-            Username = Console.ReadLine();
-            string pass = string.Empty;
-            ConsoleKey k;
-
-            Console.Write("Password: ");
-            do {
-                var info = Console.ReadKey(true);
-                k = info.Key;
-                if (k == ConsoleKey.Backspace && pass.Length > 0)
-                {
-                    Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
-                    Console.Write(" ");
-                    pass = pass[0..^1];
-                }
-                else if (!char.IsControl(info.KeyChar))
-                {
-                    Console.Write("*");
-                    pass += info.KeyChar;
-                }
-            }while(k != ConsoleKey.Enter);
-            Password=pass;
-            Console.WriteLine();
-	    //	    Console.WriteLine("No mail.");
+            FrConsole.WriteLine("\nThis is root from Terminal OS.");
+            FrConsole.Write("root login: ");
+            Username = FrConsole.ReadLine();
+            FrConsole.WriteLine();
+	    //	    Console.WriteLine("No mail.");*/
         }
 
         public static StringBuilder v = new();
@@ -194,9 +175,12 @@ namespace TerminalOS_L
         
         protected override void Run()
         {   
+            /*
             v=new();
-            var input = ReadLine();
-            Console.WriteLine(cm.Input(input));
+            */
+            FrConsole.Write("$ ");
+            var input = FrConsole.ReadLine();
+            FrConsole.WriteLine(cm.Input(input));
         }
 
         protected override void AfterRun()

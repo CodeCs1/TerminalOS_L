@@ -18,6 +18,7 @@
         <Profile>VMware</Profile>
         <Description>Use VMware Player or Workstation to deploy and debug.</Description>
         <PxeInterface>192.168.0.8</PxeInterface>
+        <CompileVBEMultiboot>True</CompileVBEMultiboot>
     </PropertyGroup>
     <ItemGroup>
         <EmbeddedResource Include="Windows_Based/Font/ter-v16n.psf"/>

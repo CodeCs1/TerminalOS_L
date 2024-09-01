@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 using TerminalOS_L.Driver;
+using TerminalOS_L.FrameBuffer;
 using TerminalOS_L.Misc;
 
 // Some resource that helping me in making this driver:
@@ -116,7 +117,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
             // Size of BGD:
             int bgdsz = (int)(spb.TotalInodes/spb.NumberofInodes);
             builder.AppendFormat("BGD Size: {0}\n", bgdsz);
-            Console.WriteLine(builder.ToString());
+            FrConsole.WriteLine(builder.ToString());
             bgd=new BlockGroupDescriptor[bgdsz];
             byte[] blockdescriptor = new byte[32*bgdsz];
             ata.Read28((int)(LBA_Start+4), 32*bgdsz,ref blockdescriptor);
@@ -141,7 +142,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 build2.AppendFormat("FreeBlockCount: {0}\n", bgd[i].FreeBlockCount);
                 build2.AppendFormat("FreeInodeCount: {0}\n", bgd[i].FreeInodeCount);
                 build2.AppendFormat("UsedDirCount: {0}\n",   bgd[i].UsedDirCount);
-                Console.WriteLine(build2.ToString());
+                FrConsole.WriteLine(build2.ToString());
             }
 
             return 0;
@@ -294,7 +295,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
                             ok = true;
                             break;
                         } else {
-                            Console.WriteLine($"File {path[path.LastIndexOf('/')..]} is not a folder.");
+                            FrConsole.WriteLine($"File {path[path.LastIndexOf('/')..]} is not a folder.");
                             return;
                         }
                     } else {
@@ -319,7 +320,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
                         break;
                 }
             }
-            else Console.WriteLine("Folder not exist.");
+            else FrConsole.WriteLine("Folder not exist.");
         }
         private DirectoryEntry[] GetDirectoryEntry(Inode inode,ExtendedSuperBlock esb,
         SuperBlockEnum spb) {
@@ -428,7 +429,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
                         builder.AppendFormat($"<DIR>");
                         break;
                 }
-                Console.WriteLine(builder.ToString());
+                FrConsole.WriteLine(builder.ToString());
             }
         }
     }

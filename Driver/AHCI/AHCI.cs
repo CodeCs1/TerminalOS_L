@@ -6,13 +6,12 @@ using Cosmos.HAL;
 using Cosmos.HAL.BlockDevice;
 using Cosmos.HAL.BlockDevice.Ports;
 using Cosmos.HAL.BlockDevice.Registers;
-using TerminalOS_L.Driver.AHCIHeader;
 
 
 //This driver code harder than IDE.
-//A Non-ReCook version of Cosmos AHCI!
+//A ReCook version of Cosmos AHCI!
 
-namespace TerminalOS_L.Driver {
+namespace TerminalOS_L.Driver.AHCI {
     public class AHCI {
         private static PCIDevice pci;
         public static bool IsAHCI() {
@@ -23,7 +22,7 @@ namespace TerminalOS_L.Driver {
         }
         public unsafe struct AHCI_Dev {
             public uint Bar;
-            public HBA_MEM* mem;
+            public HBA_MEM mem;
         }
         private void AHCI_Handler(ref INTs.IRQContext aContext) {
             Console.WriteLine("This should be work.");
@@ -34,15 +33,14 @@ namespace TerminalOS_L.Driver {
             // Built-in AHCI just...crash.
             //Cosmos.HAL.BlockDevice.AHCI _ = new (pci);
             AHCI_Dev dev=new() {
-                Bar = pci.ReadRegister32(0x24), // Get BAR5 Register
+                Bar = pci.ReadRegister32(0x24) , // Get BAR5 Register
+                mem = new(){
+
+                }
             };
             //?
-            unsafe {
-                dev.mem = (HBA_MEM*)dev.Bar;
-                HBA_MEM mem = dev.mem[0];
-                Console.WriteLine($"{mem.port.Length}");
-            }
             StringBuilder b=new();
+            b.AppendFormat("{0}", dev.Bar& 0xFFFFFFFF00000000);
             Console.WriteLine(b.ToString());
             INTs.SetIrqHandler(pci.InterruptLine, AHCI_Handler);
         }

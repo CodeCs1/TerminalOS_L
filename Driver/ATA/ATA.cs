@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Cosmos.Core;
 using Cosmos.HAL.BlockDevice;
+using TerminalOS_L.FrameBuffer;
 /* ATA Driver, The ReCook version of Cosmos ATA! */
 namespace TerminalOS_L.Driver {
 
@@ -243,8 +244,30 @@ namespace TerminalOS_L.Driver {
             ATARegisters.LBAHi = (byte)((LBA >> 16) & 0xff);
             ATARegisters.CommandRegisters =0x20;
             while((ATARegisters.StatusRegisters & 0x80) != 0);
+            while ((ATARegisters.StatusRegisters & 0x08) == 0) {
+                FrConsole.Write(".");
+            }
             if ((ATARegisters.StatusRegisters & 0x01) != 0) {
-                Message.Send_Error("Error while read sectors!");
+                    if (GetBitsSet(ATARegisters.ErrorRegister,0) != 0) 
+                        Message.Send_Error("Address mark not found.");
+                    else if (GetBitsSet(ATARegisters.ErrorRegister,1) != 0) 
+                       Message.Send_Error("Track zero not found.");
+                    else if (GetBitsSet(ATARegisters.ErrorRegister,2) != 0) 
+                       Message.Send_Error("Aborted command.");
+                    else if (GetBitsSet(ATARegisters.ErrorRegister,3) != 0) 
+                       Message.Send_Error("Media change request.");
+                    else if (GetBitsSet(ATARegisters.ErrorRegister,4) != 0) 
+                       Message.Send_Error("ID not found.");
+                    else if (GetBitsSet(ATARegisters.ErrorRegister,5) != 0) 
+                       Message.Send_Error("Media changed.");
+                    else if (GetBitsSet(ATARegisters.ErrorRegister,6) != 0) 
+                       Message.Send_Error("Uncorrectable data error.");
+                    else if (GetBitsSet(ATARegisters.ErrorRegister,7) != 0) 
+                       Message.Send_Error("Bad Block detected.");
+                    else
+                        Message.Send_Error("Unknown Error");
+                    
+                    Message.Send_Error("Error while read sectors");
                 return;
             } else if (GetBitsSet(ATARegisters.StatusRegisters,5) != 0) {
                 Message.Send_Error("Drive Fault.");
@@ -271,22 +294,6 @@ namespace TerminalOS_L.Driver {
                 return;
             }
             ATARegisters.DriveRegisters = (byte)((IsMaster ? 0xe0 : 0xf0) | ((IsMaster ? 0 : 1) << 4) | ((LBA & 0x0f) >> 24));
-            ATARegisters.ControlRegisters=0;
-
-            if (ATARegisters.StatusRegisters == 0xff) {
-                ATARegisters.DriveRegisters = (byte)(IsMaster ? 0xA0 : 0xB0);
-                if (ATARegisters.StatusRegisters == 0xff) {
-                    Message.Send_Error("No Devices were found to write!");
-                    return;
-                }
-                else {
-                    Message.Send_Log("Writting mode changed to A0 : B0");
-                }
-            } else {
-                Message.Send_Log("Keeping Drive Selector to E0 : F0");
-            }
-
-            ATARegisters.DriveRegisters = (byte)((IsMaster ? 0xe0 : 0xf0) | ((IsMaster ? 0 : 1) << 4) | ((LBA & 0x0f) >> 24));
             ATARegisters.FeaturesRegister = 0x00;
             ATARegisters.SectorCountRegister = 1;
             ATARegisters.LBALow = (byte)(LBA & 0xff);
@@ -294,16 +301,17 @@ namespace TerminalOS_L.Driver {
             ATARegisters.LBAHi = (byte)((LBA >> 16) & 0xff);
             ATARegisters.CommandRegisters =0x30;
             while((ATARegisters.StatusRegisters & 0x80) != 0);
-            while ((ATARegisters.StatusRegisters & 0x08) == 0);
-            if ((ATARegisters.StatusRegisters & 0x01) != 0) {
-                Message.Send_Error("Error while write sectors!");
-                return;
-            } else if (GetBitsSet(ATARegisters.StatusRegisters,5) != 0) {
-                Message.Send_Error("Drive Fault.");
-                return;
-            } else if (GetBitsSet(ATARegisters.StatusRegisters, 3) == 0) {
-                Message.Send_Error("The device is not accept PIO data!");
-                return;
+            while ((ATARegisters.StatusRegisters & 0x08) == 0) {
+                if ((ATARegisters.StatusRegisters & 0x01) != 0) {
+                    Message.Send_Error("Error while write sectors!");
+                    return;
+                } else if (GetBitsSet(ATARegisters.StatusRegisters,5) != 0) {
+                    Message.Send_Error("Drive Fault.");
+                    return;
+                } else if (GetBitsSet(ATARegisters.StatusRegisters, 3) == 0) {
+                    Message.Send_Error("The device is not accept PIO data!");
+                    return;
+                }
             }
             Message.Send("Writing to LBA...");
 

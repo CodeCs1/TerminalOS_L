@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 //Send help...
 
-namespace TerminalOS_L.Driver.AHCIHeader {
+namespace TerminalOS_L.Driver.AHCI {
     public enum FIS_TYPE {
         FIS_TYPE_REG_H2D = 0x27,
         FIS_TYPE_REG_D2H = 0x34,

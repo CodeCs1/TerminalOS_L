@@ -1,10 +1,8 @@
 using System;
 using System.IO;
 using System.Text;
-using CosmosBuiltin = Cosmos.Core.IOGroup;
-using Cosmos.HAL.BlockDevice;
-using TerminalOS_L.Driver;
-using TerminalOS_L.System;
+using TerminalOS_L.Misc;
+using TerminalOS_L.Driver.NVMe;
 
 namespace TerminalOS_L {
             //MemoryStream memtest2 = new(a);
@@ -45,30 +43,12 @@ namespace TerminalOS_L {
             Console.WriteLine(build2.ToString());
             // Uncomment this to start the BSOD test.
             //DeathScreen screen = new("Test passed.");screen.DrawGUI();
-            if (!Driver.AHCI.IsAHCI()) {
-                /*if (Mount.ata == null) {
-                    Console.WriteLine("ATA Need to be mounted.");
-                    return "Failed.";
-                } */
-                byte[] data = new byte[5];
-                data[0] = (byte)'A';
-                data[1] = (byte)'V';
-                data[2] = (byte)'B';
-                data[3] = (byte)'B';
-                data[4] = (byte)'B'; 
-                Kernel.PrintByteArray(data); 
-                Mount.ata.Write28(3,data.Length,ref data);
-                for (int i=0;i<10;i++) {
-                    byte[] dataread = new byte[256];
-                    Mount.ata.Read28(i,256,ref dataread);
-                    Kernel.PrintByteArray(dataread);
-                    Console.ReadLine();
-                } 
+            if (Getroot.ata == null) {
+                Message.Send_Warning("Skip ata test");
             } else {
-                Driver.AHCI _ = new();
-                Message.Send_Warning("AHCI Driver isn't implemented yet!");
+
             }
-            _ = new Driver.NVMe();
+            _ = new NVMe();
 
             /*FrameBuffer.FrConsole fr =new();
             FrameBuffer.FrConsole.WriteLine("Done!");*/
