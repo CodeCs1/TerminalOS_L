@@ -16,7 +16,7 @@ namespace TerminalOS_L.System {
                 Message.Send_Error("I'm currently not support SVGAs yet!");
                 return;
             }
-            Canvas canvas = FullScreenCanvas.GetFullScreenCanvas(new Mode(640, 480, ColorDepth.ColorDepth32));
+            VBECanvas canvas = new(new Mode(800, 600, ColorDepth.ColorDepth32));
             switch (WinXP) {
                 case false:
                     canvas.Clear(153);

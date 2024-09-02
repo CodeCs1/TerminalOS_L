@@ -1,11 +1,8 @@
-﻿using System;
-using System.Drawing;
-using System.Text;
+﻿using System.Text;
 using Cosmos.HAL;
-using Cosmos.System.Graphics;
-using TerminalOS_L.CosmosPort;
+using Cosmos.HAL.Drivers.Audio;
+using TerminalOS_L.Driver.AHCI;
 using TerminalOS_L.FrameBuffer;
-using TerminalOS_L.Misc;
 using Sys = Cosmos.System;
 
 namespace TerminalOS_L
@@ -15,8 +12,6 @@ namespace TerminalOS_L
         public static FileIO f;
         public static CommandManager cm;
         public static string file;
-
-
         public static string DOW(int day) {
             switch (day)
             {
@@ -54,12 +49,13 @@ namespace TerminalOS_L
                 sb.AppendFormat("{0:x2},", b);
             }
             sb.Append('}');
-            Console.WriteLine(sb.ToString());
+            FrConsole.WriteLine(sb.ToString());
         }
 
         public static bool SVGASupport;
         private static string Username;
         private static string Password;
+        public static bool UseAC97;
 
         protected override void BeforeRun()
         {
@@ -69,115 +65,26 @@ namespace TerminalOS_L
             cm = new CommandManager();
             PCIDevice dev = PCI.GetDevice(VendorID.VMWare,DeviceID.SVGAIIAdapter);
             if (dev.VendorID == (ushort)VendorID.VMWare && dev.DeviceID == (ushort)DeviceID.SVGAIIAdapter) {
-                //Message.Send("Detected VMWare SVGA-II Device, Replacing VGA method...");
                 Message.Send("Detected VMWare SVGA-II Device, Replacing VGA method...");
                 SVGASupport=true;
             }
-            Message.Send("Device connected!");
-
+            dev = PCI.GetDeviceClass(ClassID.MultimediaDevice, SubclassID.IDEInterface); // SubClassID is actually Multimedia Audio Controller, not IDEInterface
+            if (dev.DeviceExists) {
+                Message.Send("Detected AC97 Driver.");
+                AC97.Initialize(4096); // Load builtin driver.
+            }
+            if (AHCI.IsAHCI()) {
+                Message.Send("Detected AHCI Driver.");
+                _ = new AHCI();
+            }
             FrConsole.WriteLine("\nThis is root from Terminal OS.");
             FrConsole.Write("root login: ");
             Username = FrConsole.ReadLine();
             FrConsole.WriteLine();
-	    //	    Console.WriteLine("No mail.");*/
-        }
-
-        public static StringBuilder v = new();
-        ///<summary>
-        /// The ReadLine function used to resemble the linux shell.
-        ///</summary>
-        private static string ReadLine() {
-            string path = string.IsNullOrEmpty(Getroot.Path) ? "Rootless" : Getroot.Path;
-            Console.Write($"[{path}]{Username}$ {v}");
-            string res = null;
-            ConsoleKeyInfo info = Console.ReadKey(true);
-            while(info.Key != ConsoleKey.Enter) {
-                if ((info.Modifiers & ConsoleModifiers.Control) != 0) {
-                    switch(info.Key) {
-                        case ConsoleKey.L:
-                            Console.Clear();
-                            Console.Write($"[{path}]{Username}$ {v}");
-                            break;
-                        case ConsoleKey.C:
-                            Console.Write("^C");
-                            Console.WriteLine();
-                            Console.Write($"[{path}]{Username}$ ");
-                            v.Clear();
-                            break;
-                        case ConsoleKey.B:
-                            Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
-                            break;
-                        case ConsoleKey.F:
-                            Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop);
-                            break;
-                        case ConsoleKey.A:
-                            Console.SetCursorPosition(4+v.Length+Getroot.Path.Length, Console.CursorTop);
-                            break;
-                        case ConsoleKey.E:
-                            Console.SetCursorPosition(4+v.Length+Getroot.Path.Length+(v.Length - 1), Console.CursorTop);
-                            break;
-
-                    }
-                }
-                else {
-                    switch (info.Key) {
-                        case ConsoleKey.Backspace:
-                            if (v.Length > 0) {
-                                if (v[^1] == '\t') { // check for tab key press
-                                    for (int i=0;i<4;i++) {
-                                        Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
-                                        Console.Write(" ");
-                                    }
-                                    Console.SetCursorPosition(Console.CursorLeft - 4, Console.CursorTop);
-                                    v = v.Remove(v.Length - 1, 1);
-                                } else {
-                                    Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
-                                    Console.Write(" ");
-                                    Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
-                                    v = v.Remove(v.Length - 1, 1);
-                                }
-                            }
-                            break;
-                        case ConsoleKey.Tab:
-                            Console.SetCursorPosition(Console.CursorLeft + 4, Console.CursorTop);
-                            v.Append('\t');
-                            break;
-                        case ConsoleKey.Enter:
-                            Console.CursorLeft = 0;
-                            Console.CursorTop++;
-                            break;
-                        case ConsoleKey.Spacebar:
-                            Console.Write(" ");
-                            v.Append(' ');
-                            break;
-                        case ConsoleKey.LeftArrow:
-                            if (Console.CursorLeft > 4+v.Length+Getroot.Path.Length)
-                                Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
-                            break;
-                        case ConsoleKey.RightArrow:
-                            if (Console.CursorLeft < v.Length+4+Getroot.Path.Length)
-                                Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop);
-                            break;
-                        default:
-                            Console.Write(info.KeyChar);
-                            v.Append(info.KeyChar);
-                            break;
-                    }
-                }
-                info = Console.ReadKey(true);
-            }
-            if (info.Key == ConsoleKey.Enter) {
-                Console.WriteLine();
-                res = v.ToString();
-            }
-            return res;
         }
         
         protected override void Run()
-        {   
-            /*
-            v=new();
-            */
+        {
             FrConsole.Write("$ ");
             var input = FrConsole.ReadLine();
             FrConsole.WriteLine(cm.Input(input));

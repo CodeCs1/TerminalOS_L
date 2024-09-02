@@ -6,6 +6,7 @@ using Cosmos.HAL;
 using Cosmos.HAL.BlockDevice;
 using Cosmos.HAL.BlockDevice.Ports;
 using Cosmos.HAL.BlockDevice.Registers;
+using TerminalOS_L.FrameBuffer;
 
 
 //This driver code harder than IDE.
@@ -25,24 +26,31 @@ namespace TerminalOS_L.Driver.AHCI {
             public HBA_MEM mem;
         }
         private void AHCI_Handler(ref INTs.IRQContext aContext) {
-            Console.WriteLine("This should be work.");
+            FrConsole.WriteLine("This should be work.");
+        }
+        // 
+        private static void SetAHCIRegister(MemoryBlock memblock,int location,uint start_index, uint mem_value) {
+            uint SetValue = 1U << location;
+            mem_value = SetValue;
+            memblock[start_index] = mem_value;
+        }
+        private static uint GetAHCIRegister(MemoryBlock memblock, uint start_index) {
+            return memblock[start_index];
         }
         public AHCI() {
             pci.EnableDevice();
             pci.EnableMemory(true);
             // Built-in AHCI just...crash.
             //Cosmos.HAL.BlockDevice.AHCI _ = new (pci);
+            var memblock = new MemoryBlock(pci.ReadRegister32(0x24),0x100);
             AHCI_Dev dev=new() {
                 Bar = pci.ReadRegister32(0x24) , // Get BAR5 Register
-                mem = new(){
-
-                }
+                mem = new()
             };
-            //?
-            StringBuilder b=new();
-            b.AppendFormat("{0}", dev.Bar& 0xFFFFFFFF00000000);
-            Console.WriteLine(b.ToString());
+            SetAHCIRegister(memblock,31,1,dev.mem.ghc); // Enable AHCI
+            uint value = GetAHCIRegister(memblock,0);
             INTs.SetIrqHandler(pci.InterruptLine, AHCI_Handler);
+            FrConsole.WriteLine($"Host Capabilities: {Convert.ToString(value)}");
         }
     }
 }

@@ -11,16 +11,18 @@ namespace TerminalOS_L {
         public override string Execute(string[] args)
         {
             if (args.Length==0) {
-                string res=Kernel.f.ReadFile("Loader.cfg");
-                string[] command = res.Split('\n');
+                //string res=Kernel.f.ReadFile("Loader.cfg");
+                string[] command = {"a"};
                 StringBuilder builder=new();
                 foreach(string commands in command) {
                     switch(commands.Split(' ')[0]) {
                         case " ":
                             continue;
                         case "ret":
+                        /*
                             Kernel.f.CreateFile(commands.Split(' ')[1]);
                             Kernel.f.WriteFileByString(commands.Split(' ')[1],builder.ToString());
+                            */
                             builder.Clear();   
                             break;
                         default:
@@ -41,12 +43,12 @@ namespace TerminalOS_L {
                     return "";
                 }
                 CFGRunner.CFGRunner c = new();
-                string res=Kernel.f.ReadFile(args[0]);
-                string[] command = res.Split('\n');
-                foreach(string commands in command) {
+                //string res=Kernel.ReadFile(args[0]);
+                //string[] command = res.Split('\n');
+                /*foreach(string commands in command) {
                     if (commands == "#!alias") continue;
                     c.Run(commands);
-                }
+                }*/
                 return "";
             }
         }

@@ -3,6 +3,8 @@ using System.IO;
 using System.Text;
 using TerminalOS_L.Misc;
 using TerminalOS_L.Driver.NVMe;
+using TerminalOS_L.FrameBuffer;
+using TerminalOS_L.Driver.VBox;
 
 namespace TerminalOS_L {
             //MemoryStream memtest2 = new(a);
@@ -28,7 +30,7 @@ namespace TerminalOS_L {
                 Console.WriteLine("Test failed.");
                 return "Failed.";
             }
-            Console.WriteLine(build.ToString());
+            FrConsole.WriteLine(build.ToString());
             //Seek with BinaryReader
             var memtest2 = new BinaryReader(new MemoryStream(a));
             StringBuilder build2 =new();
@@ -37,10 +39,10 @@ namespace TerminalOS_L {
             var test3 = memtest2.ReadByte();
             build2.AppendFormat("Seek Read: {0}\n", test3);
             if (test3 != 5) {
-                Console.WriteLine("Test failed.");
+                FrConsole.WriteLine("Test failed.");
                 return "Failed.";
             }
-            Console.WriteLine(build2.ToString());
+            FrConsole.WriteLine(build2.ToString());
             // Uncomment this to start the BSOD test.
             //DeathScreen screen = new("Test passed.");screen.DrawGUI();
             if (Getroot.ata == null) {
@@ -49,6 +51,7 @@ namespace TerminalOS_L {
 
             }
             _ = new NVMe();
+            _ = new VBox();
 
             /*FrameBuffer.FrConsole fr =new();
             FrameBuffer.FrConsole.WriteLine("Done!");*/

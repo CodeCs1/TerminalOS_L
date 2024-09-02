@@ -1,4 +1,5 @@
 using System;
+using TerminalOS_L.FrameBuffer;
 using TerminalOS_L.Misc;
 using TerminalOS_L.System;
 
@@ -9,17 +10,12 @@ namespace TerminalOS_L.BuiltinProgram  {
 
         public override string Execute(string[] args) {
             if (args.Length < 1) {
-                Console.WriteLine("Usage: viewpad <filename>");
+                FrConsole.WriteLine("Usage: viewpad <filename>");
                 return "No argument given";
             }
-            try {
-                Console.WriteLine("[Viewpad]");
-                string rfile=Getroot.RegisteredVFS[Getroot.RegisteredVFSIndex].ReadFile(args[0]);
-                Console.Write(rfile);
-            } catch(Exception ex) {
-                DeathScreen d = new(ex.Message);
-                d.DrawGUI();
-            }
+            Console.WriteLine("[Viewpad]");
+            string rfile=Getroot.RegisteredVFS[Getroot.RegisteredVFSIndex].ReadFile(args[0]);
+            FrConsole.Write(rfile);
             return "";
         }
     }

@@ -7,7 +7,7 @@ using Cosmos.HAL.Drivers.Video.SVGAII;
 namespace TerminalOS_L {
     public class Win : Command {
         public Win(string name) : base(name) {}
-        Canvas canvas;
+        VBECanvas canvas;
         VMWareSVGAII vm;
         private readonly int[] Windows1Cursor = new int[]
             {
@@ -62,28 +62,23 @@ namespace TerminalOS_L {
         public override string Execute(string[] args)
         {
             if (!Kernel.SVGASupport) {
-                canvas = FullScreenCanvas.GetFullScreenCanvas(new Mode(640, 480, ColorDepth.ColorDepth32));
+                canvas = new(new Mode(800, 6000, ColorDepth.ColorDepth32));
                 /*Init the cursor*/
                 canvas.Clear(5635925);
                 
-                Sys.MouseManager.ScreenWidth = 640;
-                Sys.MouseManager.ScreenHeight = 480;
-                Sys.MouseManager.X = 640/2;
-                Sys.MouseManager.Y = 480/2;
-                MSExe exe = new (canvas,"MS-DOS Executable",640,480);
+                Sys.MouseManager.ScreenWidth = 800;
+                Sys.MouseManager.ScreenHeight = 600;
+                Sys.MouseManager.X = 800/2;
+                Sys.MouseManager.Y = 600/2;
+                MSExe exe = new (canvas,"MS-DOS Executable",800,600);
 
                 while(true) {
-                    Point cur = new((int)Sys.MouseManager.X, (int)(int)Sys.MouseManager.Y);
+                    Point cur = new((int)Sys.MouseManager.X, (int)Sys.MouseManager.Y);
                     canvas.DrawPoint(Color.Black, cur.X, cur.Y);
 
                     if (Sys.MouseManager.MouseState == Sys.MouseState.Left) {
                         Sys.PCSpeaker.Beep();
                     }
-
-                    if (Sys.MouseManager.X == 640) {
-                        Sys.MouseManager.X = 0;
-                    }
-
                     exe.Init();
                     DrawCursor(Sys.MouseManager.X,Sys.MouseManager.Y);
                     canvas.Display();

@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Text;
+using Cosmos.HAL.Drivers.Audio;
 using Cosmos.System;
 using Cosmos.System.Graphics;
 using Cosmos.System.Graphics.Fonts;
@@ -12,12 +13,26 @@ namespace TerminalOS_L.FrameBuffer {
         private static VBECanvas consoleCanvas;
         private static int X=0,Y=0;
         private static Font f;
+        public static uint Width,Height;
         public FrConsole() {
             if (Kernel.SVGASupport) {
                 Message.Send_Error("SVGA Not support yet!");
                 return;
             }
-            consoleCanvas = new(new Mode(800, 600, ColorDepth.ColorDepth32));
+            Width = 800;
+            Height = 600;
+            consoleCanvas = new(new Mode(Width, Height, ColorDepth.ColorDepth32));
+            consoleCanvas.Clear(0);
+            f = PCScreenFont.LoadFont(ConsoleFont);
+            consoleCanvas.Display();
+        }
+
+        public FrConsole(Mode m) {
+            if (Kernel.SVGASupport) {
+                Message.Send_Error("SVGA Not support yet!");
+                return;
+            }
+            consoleCanvas = new(m);
             consoleCanvas.Clear(0);
             f = PCScreenFont.LoadFont(ConsoleFont);
             consoleCanvas.Display();
@@ -42,6 +57,11 @@ namespace TerminalOS_L.FrameBuffer {
                             WriteChr('\b');
                             Xread--;
                             builder.Remove(Xread,1);
+                        }
+                        else {
+                            if (Kernel.UseAC97) {
+                                PCSpeaker.Beep();
+                            }
                         }
                         break;
                     default:
@@ -74,7 +94,8 @@ namespace TerminalOS_L.FrameBuffer {
                     break;
                 case '\b':
                     if (X > 0) {
-                        consoleCanvas.DrawChar(' ', f, Color.Black, X-=8, Y);
+                        //consoleCanvas.DrawChar('0', f, Color.Black, X-=8, Y);
+                        consoleCanvas.DrawFilledRectangle(Color.Black,X-=8,Y,8,16);
                     }
                     break;
                 default:
@@ -83,11 +104,11 @@ namespace TerminalOS_L.FrameBuffer {
                     X+=8;
                     break;
             }
-            if (X >= 800-8) {
+            if (X >= Width-8) {
                 X=0;
                 Y+=16;
             }
-            if (Y >= 600-16) {
+            if (Y >= Height-16) {
                 //TODO: Scroll up
                 Clear();
                 X=Y=0;
@@ -118,6 +139,9 @@ namespace TerminalOS_L.FrameBuffer {
             consoleCanvas.Clear();
             consoleCanvas.Display();
             X=Y=0;
+        }
+        public static ConsoleKeyEx ReadKey() {
+            return KeyboardManager.ReadKey().Key;
         }
     }
 }

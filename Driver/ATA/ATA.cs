@@ -245,9 +245,7 @@ namespace TerminalOS_L.Driver {
             ATARegisters.CommandRegisters =0x20;
             while((ATARegisters.StatusRegisters & 0x80) != 0);
             while ((ATARegisters.StatusRegisters & 0x08) == 0) {
-                FrConsole.Write(".");
-            }
-            if ((ATARegisters.StatusRegisters & 0x01) != 0) {
+                if ((ATARegisters.StatusRegisters & 0x01) != 0) {
                     if (GetBitsSet(ATARegisters.ErrorRegister,0) != 0) 
                         Message.Send_Error("Address mark not found.");
                     else if (GetBitsSet(ATARegisters.ErrorRegister,1) != 0) 
@@ -268,13 +266,10 @@ namespace TerminalOS_L.Driver {
                         Message.Send_Error("Unknown Error");
                     
                     Message.Send_Error("Error while read sectors");
-                return;
-            } else if (GetBitsSet(ATARegisters.StatusRegisters,5) != 0) {
-                Message.Send_Error("Drive Fault.");
-                return;
-            } else if (GetBitsSet(ATARegisters.StatusRegisters, 3) == 0) {
-                Message.Send_Error("The device is not accept PIO data!");
-                return;
+                    return;
+                } else if (GetBitsSet(ATARegisters.StatusRegisters,5) != 0) {
+                    Message.Send_Error("Drive Fault.");
+                }
             }
 
             for (int i=0;i<Count;i++) {

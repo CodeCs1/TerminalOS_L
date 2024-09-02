@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TerminalOS_L.BuiltinProgram;
+using TerminalOS_L.FrameBuffer;
 using TerminalOS_L.Misc;
 
 namespace TerminalOS_L {
@@ -18,7 +19,8 @@ namespace TerminalOS_L {
                 new Getroot("getroot"),
                 new ls("ls"),
                 new Viewpad(),
-                new cd()
+                new cd(),
+                new SetMode()
             };
         }
 
@@ -34,26 +36,38 @@ namespace TerminalOS_L {
                 }
                 ++count;
             }
+            string result = $"Command,File '{commandname}' not found";
             foreach(Command cmd in CommandInterface) {
                 if (cmd.name == commandname) {
-                   cmd.Execute(args.ToArray());
+                    result = cmd.Execute(args.ToArray());
                 }
                 if (commandname.Length == 0) {
                     return "";
                 }
             }
-            return $"Command,File '{commandname}' not found";
+            return result;
         }
         public string Input(string input) {
+            string result = "";
             if (input.Contains("&&")) {
                 string[] spl = input.Split("&&");
                 foreach(string command in spl) {
-                    Command(command);
+                    try {
+                        result = Command(command);
+                    } catch(Exception ex) {
+                        FrConsole.WriteLine($"Getting Error while running command!\nException: {ex.Message}");
+                        return "";
+                    }
                 }
             } else {
-                Command(input);
+                try {
+                    result = Command(input);
+                } catch(Exception ex) {
+                    FrConsole.WriteLine($"Getting Error while running command!\nException: {ex.Message}");
+                    return "";
+                }
             }
-            return "";
+            return result;
         }
     }
 }
