@@ -81,6 +81,15 @@ namespace TerminalOS_L.FrameBuffer {
         public static Color BackgroundColor=Color.Black;
 
         public static void WriteChr(char c) {
+            if (X >= Width-8) {
+                X=0;
+                Y+=16;
+            }
+            if (Y >= Height-16) {
+                //TODO: Scroll up
+                Clear();
+                X=Y=0;
+            }
             switch(c) {
                 case '\n':
                     Y+=16;
@@ -103,15 +112,6 @@ namespace TerminalOS_L.FrameBuffer {
                     consoleCanvas.DrawChar(c,f,ForegroundColor,X,Y);
                     X+=8;
                     break;
-            }
-            if (X >= Width-8) {
-                X=0;
-                Y+=16;
-            }
-            if (Y >= Height-16) {
-                //TODO: Scroll up
-                Clear();
-                X=Y=0;
             }
             consoleCanvas.Display();
         }

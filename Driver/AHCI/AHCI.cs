@@ -58,18 +58,30 @@ namespace TerminalOS_L.Driver.AHCI {
             };
         }
 
+        private static MemoryBlock PortBlock;
+
         private static void WritePort(ref HBA_PORT port, int PortImpl) {
             uint Offset = (uint)(pci.ReadRegister32(0x24)+(0x100 + PortImpl * 0x80));
-            MemoryBlock bl = new(Offset, 0x80);
+            PortBlock = new(Offset, 0x80);
             port = new() {
-                CLB = bl[0],
-                CLBU = bl[0x04],
-                FB = bl[0x08],
-                FBU = bl[0x0C],
-                InterruptStatus = bl[0x10],
-                InterruptEnable = bl[0x14],
-                Signature = bl[0x24],
-                SATAStatus = bl[0x28]
+                CLB = PortBlock[0],
+                CLBU = PortBlock[0x04],
+                FB = PortBlock[0x08],
+                FBU = PortBlock[0x0C],
+                InterruptStatus = PortBlock[0x10],
+                InterruptEnable = PortBlock[0x14],
+                Command = PortBlock[0x18],
+                Reserved = PortBlock[0x1C],
+                TFD = PortBlock[0x20],
+                Signature = PortBlock[0x24],
+                SATAStatus = PortBlock[0x28],
+                SATAControl = PortBlock[0x2C],
+                SATAError = PortBlock[0x30],
+                SATAActive = PortBlock[0x34],
+                CommandIssue = PortBlock[0x38],
+                SATANotification = PortBlock[0x3c],
+                FBS=PortBlock[0x40],
+                
             };
         }
 
@@ -104,13 +116,41 @@ namespace TerminalOS_L.Driver.AHCI {
                 i++;
             }
         }
+
+        private void StartCommand(HBA_PORT port) {
+            while((port.Command & 0x8000) != 0) {
+                FrConsole.Write(".");
+                port.Command = PortBlock[0x18];
+            }
+            port.Command |= 0x0010;
+            PortBlock[0x18] = port.Command;
+
+            port.Command |= 0x0001;
+            PortBlock[0x18] = port.Command;
+        }
+
+        private static int findCmd(HBA_PORT port) {
+            uint slots = port.SATAActive | port.CommandIssue;
+            int cmdsl = (int)((dev.mem.cap & 0x0f00) >> 8);
+            for (int i=0;i<cmdsl;i++) {
+                if ((slots & 1) == 0) {
+                    return i;
+                }
+                slots >>=1;
+            }
+            FrConsole.WriteLine("Not OK");
+            return -1;
+        }
+
+        private static AHCI_Dev dev;
+
         public AHCI() {
             pci.EnableDevice();
             pci.EnableMemory(true);
             // Built-in AHCI just...crash.
             //Cosmos.HAL.BlockDevice.AHCI _ = new (pci);
             var memblock = new MemoryBlock(pci.ReadRegister32(0x24),0x100);
-            AHCI_Dev dev=new() {
+            dev=new() {
                 Bar = pci.ReadRegister32(0x24) , // Get BAR5 Register
                 mem = new() {
                     port = new HBA_PORT[31],
@@ -120,10 +160,12 @@ namespace TerminalOS_L.Driver.AHCI {
             dev.mem.cap = GetAHCIRegister(memblock,0);
             INTs.SetIrqHandler(pci.InterruptLine, AHCI_Handler);
             FrConsole.WriteLine($"Host Capabilities: {Convert.ToString(dev.mem.cap)}");
-            FrConsole.WriteLine($"Is DMA Support (Both 1 = Yes, Other value: No): {Convert.ToString(dev.mem.cap & (1 << 31))} | {Convert.ToString(dev.mem.cap & (1 << 30))}");
             dev.mem.PortImpl = GetAHCIRegister(memblock,0x0C);
             FrConsole.WriteLine($"Port Implemented: {Convert.ToString(dev.mem.PortImpl)}");
             ProbePort(dev.mem);
+            FrConsole.WriteLine($"Port 0 CLB: {dev.mem.port[0].CLB}");
+            findCmd(dev.mem.port[0]);
+            StartCommand(dev.mem.port[0]);
         }
     }
 }

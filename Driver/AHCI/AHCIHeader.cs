@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.InteropServices;
 
 //Send help...
@@ -149,6 +150,43 @@ public byte Type;
         [MarshalAs(UnmanagedType.ByValArray,SizeConst =1)]
         public HBA_PORT[] port;
     }
+
+    [Serializable]
+    public struct HBA_CMD_HEADER {
+        [BitField(5)]
+        public byte CommandFISLength;
+
+        [BitField(1)]
+        public byte ATAPI;
+
+        [BitField(1)]
+        public byte Write;
+
+        [BitField(1)]
+        public byte Prefetch;
+
+        [BitField(1)]
+        public byte Reset;
+
+        [BitField(1)]
+        public byte BIST;
+
+        [BitField(1)]
+        public byte ClearBusy;
+
+        [BitField(1)]
+        public byte Reserved0;
+
+        [BitField(4)]
+        public byte PortMultiplier;
+        public ushort prdtl;
+        public volatile uint prdbc;
+        public uint ctba;
+        public uint ctbau;
+        [MarshalAs(UnmanagedType.ByValArray,SizeConst =4)]
+        public uint[] Reserved;
+    }
+
 
     [StructLayout(LayoutKind.Sequential)]
     public struct HBA_PORT {

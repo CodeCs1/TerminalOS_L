@@ -3,6 +3,8 @@ using System.Text;
 using Cosmos.Core;
 using Cosmos.HAL;
 
+//A Cooked version of NVMe driver.
+
 namespace TerminalOS_L.Driver.NVMe {
     public class NVMe {
         public ulong BaseAddr;
