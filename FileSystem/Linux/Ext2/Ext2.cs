@@ -279,48 +279,40 @@ namespace TerminalOS_L.FileSystemR.Linux {
 
             return inode;
         }
-        public override void ChangePath(string path)
-        {
+
+        public  Inode Findfolder(string path) {
+            if (!path.StartsWith("/")) {
+                path = Getroot.Path + path;
+            }
             string[] spl = path.Split('/');
             Inode inode = GetInodeInfo(2,bgd,esb,spb); // Get root Inode
             DirectoryEntry[] en = GetDirectoryEntry(inode, esb, spb);
-            bool ok = false;
-            if (path == "/") ok =true; // always
             foreach(string path_ in spl) {
                 if (path_ == string.Empty) continue;
                 for (int i=0;i<en.Length;i++) {
                     if (Encoding.ASCII.GetString(en[i].Name) == path_) {
                         if (en[i].TypeIndicator == 2) {
                             inode = GetInodeInfo((int)en[i].inode,bgd,esb,spb);
-                            ok = true;
+                            en=GetDirectoryEntry(inode, esb, spb);
                             break;
                         } else {
                             FrConsole.WriteLine($"File {path[path.LastIndexOf('/')..]} is not a folder.");
-                            return;
+                            return inode;
                         }
-                    } else {
-                        ok = false;
                     }
                 }
             }
-            if (ok) {
-                switch(path) {
-                    case "..":
-                        if (Getroot.Path == "/") return;
-                        Getroot.Path = Getroot.Path.Remove(Getroot.Path.LastIndexOf('/'));
-                        if (Getroot.Path.Length == 0) Getroot.Path = "/";
-                        break;
-                    case ".":
-                        return;
-                    case "/":
-                        Getroot.Path = "/";
-                        break;
-                    default:
-                        Getroot.Path += path;
-                        break;
-                }
+            return inode;
+        }
+
+
+        public override void ChangePath(string path)
+        {
+            if (!path.StartsWith("./") || !path.StartsWith("/")) {
+                path = path.Insert(0,Getroot.Path);
             }
-            else FrConsole.WriteLine("Folder not exist.");
+            Findfolder(path);
+            Getroot.Path = path;
         }
         private DirectoryEntry[] GetDirectoryEntry(Inode inode,ExtendedSuperBlock esb,
         SuperBlockEnum spb) {
@@ -423,7 +415,7 @@ namespace TerminalOS_L.FileSystemR.Linux {
                         }
                         builder.AppendFormat("{0}",folder_name);
 
-                        for (int j =0;j<20-root[i].NameLength;j++) {
+                        for (int j =0;j<20-folder_name.Length;j++) {
                             builder.Append(' ');
                         }
                         builder.AppendFormat($"<DIR>");

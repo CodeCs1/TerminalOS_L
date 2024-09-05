@@ -157,6 +157,7 @@ namespace TerminalOS_L.Driver.AHCI {
                 }
             };
             SetAHCIRegister(memblock,31,1,dev.mem.ghc); // Enable AHCI
+            Message.Send("AHCI Enabled");
             dev.mem.cap = GetAHCIRegister(memblock,0);
             INTs.SetIrqHandler(pci.InterruptLine, AHCI_Handler);
             FrConsole.WriteLine($"Host Capabilities: {Convert.ToString(dev.mem.cap)}");

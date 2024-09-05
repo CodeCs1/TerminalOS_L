@@ -3,6 +3,7 @@ using Cosmos.HAL;
 using Cosmos.HAL.Drivers.Audio;
 using TerminalOS_L.Driver.AHCI;
 using TerminalOS_L.FrameBuffer;
+using TerminalOS_L.Misc;
 using Sys = Cosmos.System;
 
 namespace TerminalOS_L
@@ -69,9 +70,10 @@ namespace TerminalOS_L
                 SVGASupport=true;
             }
             dev = PCI.GetDeviceClass(ClassID.MultimediaDevice, SubclassID.IDEInterface); // SubClassID is actually Multimedia Audio Controller, not IDEInterface
-            if (dev.DeviceExists) {
+            if (dev.ClassCode == (byte)ClassID.MultimediaDevice && dev.Subclass == (byte)SubclassID.IDEInterface) {
                 Message.Send("Detected AC97 Driver.");
                 AC97.Initialize(4096); // Load builtin driver.
+                Message.Send("Completed in initializing AC97 Driver.");
             }
             if (AHCI.IsAHCI()) {
                 Message.Send("Detected AHCI Driver.");
@@ -85,7 +87,11 @@ namespace TerminalOS_L
         
         protected override void Run()
         {
-            FrConsole.Write("$ ");
+            if (string.IsNullOrEmpty(Getroot.Path)) {
+                FrConsole.Write("$ ");
+            } else {
+                FrConsole.Write($"[{Getroot.Path}]~$ ");
+            }
             var input = FrConsole.ReadLine();
             FrConsole.WriteLine(cm.Input(input));
         }

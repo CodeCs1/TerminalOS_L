@@ -5,6 +5,7 @@ using TerminalOS_L.Misc;
 using TerminalOS_L.Driver.NVMe;
 using TerminalOS_L.FrameBuffer;
 using TerminalOS_L.Driver.VBox;
+using TerminalOS_L.System;
 
 namespace TerminalOS_L {
             //MemoryStream memtest2 = new(a);
@@ -44,7 +45,9 @@ namespace TerminalOS_L {
             }
             FrConsole.WriteLine(build2.ToString());
             // Uncomment this to start the BSOD test.
-            //DeathScreen screen = new("Test passed.");screen.DrawGUI();
+            /*var winxp = new DeathScreen("Test passed.");
+            winxp.DrawGUI();
+            */
             if (Getroot.ata == null) {
                 Message.Send_Warning("Skip ata test");
             } else {
@@ -55,6 +58,9 @@ namespace TerminalOS_L {
 
             /*FrameBuffer.FrConsole fr =new();
             FrameBuffer.FrConsole.WriteLine("Done!");*/
+
+            /*FrConsole.WriteLine("Testing Unicode #1: こんにちは <- It should be: Konnichiha");
+            FrConsole.WriteLine("Testing Unicode #2: xin chào, đây là một câu ví dụ. <- It should be: xin chao, day la mot cau vi du.");*/
 
             Message.Send("If you gone this far, then congrat!");
 

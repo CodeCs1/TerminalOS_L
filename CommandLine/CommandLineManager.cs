@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using TerminalOS_L.BuiltinProgram;
 using TerminalOS_L.FrameBuffer;
 using TerminalOS_L.Misc;
@@ -39,6 +38,7 @@ namespace TerminalOS_L {
             string result = $"Command,File '{commandname}' not found";
             foreach(Command cmd in CommandInterface) {
                 if (cmd.name == commandname) {
+                    result = "Last command quit in unexpected way.";
                     result = cmd.Execute(args.ToArray());
                 }
                 if (commandname.Length == 0) {

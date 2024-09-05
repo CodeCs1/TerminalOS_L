@@ -1,5 +1,5 @@
-using System;
 using System.Text;
+using TerminalOS_L.FrameBuffer;
 
 namespace TerminalOS_L {
     public class Echo : Command {
@@ -12,7 +12,7 @@ namespace TerminalOS_L {
                 b.Append(' ');
             }
             b.Length -=1;
-            Console.WriteLine(b);
+            FrConsole.WriteLine(b.ToString());
             return "";
         }
 

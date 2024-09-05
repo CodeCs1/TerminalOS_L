@@ -37,7 +37,6 @@ namespace TerminalOS_L.Driver.VBox {
             try {
                 MemoryBlock bl = new(res,0x100);
                 bl[0] = (uint)info;
-                IOPort.Write32((int)res, bl[0]);
             } catch (Exception ex) {
                 Message.Send_Error(ex.Message);
                 return;

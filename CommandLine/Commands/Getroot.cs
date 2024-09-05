@@ -27,6 +27,10 @@ namespace TerminalOS_L.Misc {
                 Message.Send_Error("Bad device format!");
                 return "Bad device format";
             }
+            if (ata == null) {
+                Message.Send_Error("ATA drive need to be mount first!");
+                return "";
+            }
             string dev = args[0][5..];
             if (dev.StartsWith("sd")) {
                 string partition_number = dev[3..];
