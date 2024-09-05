@@ -91,6 +91,8 @@ namespace TerminalOS_L.Driver.NVMe {
             return "Unknown device.";
         }
 
+        private static BAR_NVMe bar_nvme;
+
         public NVMe() {
             PCIDevice dev = PCI.GetDeviceClass(ClassID.MassStorageController,SubclassID.NVMController);
             if (dev.DeviceExists) {
@@ -117,32 +119,55 @@ namespace TerminalOS_L.Driver.NVMe {
             //Read NVMe Base Addr
             bl = new(BaseAddr,0x38);
             //FrConsole.WriteLine($"NVMe version: {Convert.ToString(ReadRegisters(0x08))}");
-            uint ControlCap = ReadRegisters(0);
-            var MQES = ControlCap & 0x0ffff; // get first 15 bit or value
-            var CQR = BitPort.GetBit(ControlCap, 16);
+
+            bar_nvme = new() {
+                ControllerCap = ReadRegisters(0),
+                Version = ReadRegisters(0x08),
+                InterruptMaskset = ReadRegisters(0x0C),
+                InterruptMaskClear = ReadRegisters(0x10),
+                ControllerConfig = ReadRegisters(0x14),
+                ControllerStatus = ReadRegisters(0x1C),
+                AdminQueueAttributes = ReadRegisters(0x24),
+                AdminSubmissionQueue = ReadRegisters(0x28),
+                AdminCompletionQueue = ReadRegisters(0x30)
+            };
+            var MQES = bar_nvme.ControllerCap & 0x0ffff; // get first 15 bit or value
+            var CQR = BitPort.GetBit((uint)bar_nvme.ControllerCap, 16);
             byte[] bAMS =  {
-                BitPort.GetBit(ControlCap, 17),
-                BitPort.GetBit(ControlCap, 18)
+                BitPort.GetBit((uint)bar_nvme.ControllerCap, 17),
+                BitPort.GetBit((uint)bar_nvme.ControllerCap, 18)
             };
             var AMS = BitConverter.ToUInt16(bAMS,0);
 
-            FrConsole.WriteLine($"NVMe Controller Capabillities: {Convert.ToString(ControlCap)}");
+            FrConsole.WriteLine($"NVMe Controller Capabillities: {Convert.ToString(bar_nvme.ControllerCap)}");
             FrConsole.WriteLine($"MQES: {Convert.ToString(MQES)}");
             FrConsole.WriteLine($"CQR: {Convert.ToString(CQR)}");
             FrConsole.WriteLine($"AMS: {Convert.ToString(AMS)}");
 
-            uint Version = ReadRegisters(0x08);
-            FrConsole.WriteLine($"NVMe Version: {Convert.ToString(Version)}");
-            byte TER = (byte)(Version & 0xff); // get the first 8 bits (byte)
-            var MNR = (Version >> 8) & 0xff;
-            var MJR = (Version >> 16) & 0xff;
+            FrConsole.WriteLine($"NVMe Version: {Convert.ToString(bar_nvme.Version)}");
+            byte TER = (byte)(bar_nvme.Version & 0xff); // get the first 8 bits (byte)
+            var MNR = (bar_nvme.Version >> 8) & 0xff;
+            var MJR = (bar_nvme.Version >> 16) & 0xff;
             FrConsole.WriteLine($"TER: {Convert.ToString(TER)}");
             FrConsole.WriteLine($"MNR: {Convert.ToString(MNR)}");
             FrConsole.WriteLine($"MJR: {Convert.ToString(MJR)}");
-
             FrConsole.WriteLine(PrintNVMeVersion(MJR,MNR,TER));
 
 
+            var Enable = bar_nvme.ControllerConfig & 1; // get the first bit
+            FrConsole.WriteLine($"Control Config: {Convert.ToString(bar_nvme.ControllerConfig)}");
+            FrConsole.WriteLine($"Enable: {Convert.ToString(Enable)}");
+            
+            uint CRIME = (bar_nvme.ControllerConfig >> 24) & 0xf & 1;
+            FrConsole.WriteLine($"CRIME: {Convert.ToString(CRIME)}");
+
+            FrConsole.WriteLine($"Controller Status: {Convert.ToString(bar_nvme.ControllerStatus)}");
+
+            FrConsole.WriteLine($"Ready: {Convert.ToString(bar_nvme.ControllerStatus & 1)}");
+            //Testing NVM SubSystem Reset
+            WriteRegisters(0x20, 0x4E564D65);
+            FrConsole.WriteLine($"ASQ: {Convert.ToString(bar_nvme.AdminSubmissionQueue)}");
+            FrConsole.WriteLine($"ASQB: {Convert.ToString(bar_nvme.AdminSubmissionQueue >> 12)}");
         }
     }
 }
