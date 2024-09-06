@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Text;
 using Cosmos.Core;
 using Cosmos.HAL;
@@ -13,7 +14,14 @@ namespace TerminalOS_L.Driver.NVMe {
         public uint BaseAddr;
         private static MemoryBlock bl;
         private static uint ReadRegisters(uint offset) {
-            return bl[offset];
+            if (offset >=  0x39) {
+                FrConsole.BackgroundColor = Color.Red;
+                FrConsole.WriteLine("The offset of register can not greater-than 0x38 (56 in decimal).");
+                FrConsole.BackgroundColor = Color.White;
+                return uint.MaxValue; // Can not find other value.
+            } else {
+                return bl[offset];
+            }
         }
         private static void WriteRegisters(uint offset, uint value) {
             bl[offset] = value;
@@ -58,41 +66,16 @@ namespace TerminalOS_L.Driver.NVMe {
         // 'If else' but switch version
 
         private static string PrintNVMeVersion(uint MJR, uint MNR, uint TER) {
-            switch(MJR) {
-                case 1:
-                    switch(MNR) {
-                        case 0:
-                            return "NVMe Version 1.0";
-                        case 1:
-                            return "NVMe Version 1.1";
-                        case 2:
-                            switch(TER) {
-                                case 0:
-                                    return "NVMe Version 1.2";
-                                case 1:
-                                    return "NVMe Version 1.2.1";
-                            }
-                            break;
-                        case 3:
-                            return "NVMe Version 1.3";
-                        case 4:
-                            return "NVMe Version 1.4";
-                    }
-                    break;
-                case 2:
-                    switch(MNR) {
-                        case 0:
-                            return "NVMe Version 2.0";
-                        case 1:
-                            return "NVMe Version 2.1";
-                    }
-                    break;
+            if (MJR == 0 && MNR == 0 && TER ==0) {
+                return "Unknown device.";
+            } else {
+                return $"NVMe version {Convert.ToString(MJR)}.{Convert.ToString(MNR)}.{Convert.ToString(TER)}";
             }
-            return "Unknown device.";
         }
 
         private static BAR_NVMe bar_nvme;
 
+        // That is a lot of writeline...
         public NVMe() {
             PCIDevice dev = PCI.GetDeviceClass(ClassID.MassStorageController,SubclassID.NVMController);
             if (dev.DeviceExists) {
@@ -148,26 +131,26 @@ namespace TerminalOS_L.Driver.NVMe {
             byte TER = (byte)(bar_nvme.Version & 0xff); // get the first 8 bits (byte)
             var MNR = (bar_nvme.Version >> 8) & 0xff;
             var MJR = (bar_nvme.Version >> 16) & 0xff;
-            FrConsole.WriteLine($"TER: {Convert.ToString(TER)}");
-            FrConsole.WriteLine($"MNR: {Convert.ToString(MNR)}");
-            FrConsole.WriteLine($"MJR: {Convert.ToString(MJR)}");
             FrConsole.WriteLine(PrintNVMeVersion(MJR,MNR,TER));
 
 
             var Enable = bar_nvme.ControllerConfig & 1; // get the first bit
             FrConsole.WriteLine($"Control Config: {Convert.ToString(bar_nvme.ControllerConfig)}");
             FrConsole.WriteLine($"Enable: {Convert.ToString(Enable)}");
+            FrConsole.WriteLine($"IOCQES: {Convert.ToString((bar_nvme.ControllerConfig >> 20) & 0x0f)}");
             
             uint CRIME = (bar_nvme.ControllerConfig >> 24) & 0xf & 1;
             FrConsole.WriteLine($"CRIME: {Convert.ToString(CRIME)}");
-
             FrConsole.WriteLine($"Controller Status: {Convert.ToString(bar_nvme.ControllerStatus)}");
-
             FrConsole.WriteLine($"Ready: {Convert.ToString(bar_nvme.ControllerStatus & 1)}");
             //Testing NVM SubSystem Reset
             WriteRegisters(0x20, 0x4E564D65);
             FrConsole.WriteLine($"ASQ: {Convert.ToString(bar_nvme.AdminSubmissionQueue)}");
             FrConsole.WriteLine($"ASQB: {Convert.ToString(bar_nvme.AdminSubmissionQueue >> 12)}");
+            FrConsole.WriteLine($"AQA: {Convert.ToString(bar_nvme.AdminQueueAttributes)}");
+            FrConsole.WriteLine($"ASQS: {Convert.ToString(bar_nvme.AdminQueueAttributes & 0x0FFF)}");
+            FrConsole.WriteLine($"ACQS: {Convert.ToString(bar_nvme.AdminQueueAttributes & 17 & 0x0FFF)}");
+
         }
     }
 }
