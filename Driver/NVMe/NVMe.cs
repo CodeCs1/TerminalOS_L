@@ -11,7 +11,7 @@ using TerminalOS_L.FrameBuffer;
 
 namespace TerminalOS_L.Driver.NVMe {
     public class NVMe {
-        public uint BaseAddr;
+        public ulong BaseAddr;
         private static MemoryBlock bl;
         private static uint ReadRegisters(uint offset) {
             if (offset >=  0x39) {
@@ -73,6 +73,37 @@ namespace TerminalOS_L.Driver.NVMe {
             }
         }
 
+        private enum DoorBellType {
+            Submission,
+            Completion
+        }
+
+
+        // (1000h + ((2y) * (4 << CAP.DSTRD))
+        // (1000h + ((2y+1) * (4 << CAP.DSTRD))
+        // WTF ??
+        private static void ReadDoorbell(DoorBellType type,
+        uint index, uint BaseAddr) {
+            uint DSTRD = (uint)((bar_nvme.ControllerCap >> 31) & 0xff);
+            MemoryBlock doorblock_mem;
+            switch (type)
+            {
+                case DoorBellType.Submission:
+                    doorblock_mem = new((uint)(BaseAddr + 0x1000 + (2 * index * (4 << (int)DSTRD))), 0x03);
+                    break;
+                case DoorBellType.Completion:
+                    doorblock_mem = new((uint)(BaseAddr + 0x1000 + ((2 * index + 1) * (4 << (int)DSTRD))), 0x03);
+                    break;
+                default:
+                    return;
+            }
+            FrConsole.WriteLine($"Doorbell at index: {Convert.ToString(index)}:");
+            for (int i=0;i<4;i++) {
+                FrConsole.Write($" {Convert.ToString(doorblock_mem[0])}");
+            }
+            FrConsole.WriteLine();
+        }
+
         private static BAR_NVMe bar_nvme;
 
         // That is a lot of writeline...
@@ -88,7 +119,7 @@ namespace TerminalOS_L.Driver.NVMe {
             dev.EnableDevice();
             dev.EnableBusMaster(true);
             dev.EnableMemory(true);
-            BaseAddr = (dev.BaseAddressBar[1].BaseAddress << 32) | (dev.BAR0 & 0xFFFFFFF0);
+            BaseAddr = ((ulong)dev.BaseAddressBar[1].BaseAddress << 32) | (dev.BAR0 & 0xFFFFFFF0);
             var nvme_cap = (BaseAddr >> 12) &0xf;
 
             StringBuilder builder =new();
@@ -100,7 +131,7 @@ namespace TerminalOS_L.Driver.NVMe {
             INTs.SetIRQMaskState(dev.InterruptLine,true);
 
             //Read NVMe Base Addr
-            bl = new(BaseAddr,0x38);
+            bl = new((uint)BaseAddr,0x38);
             //FrConsole.WriteLine($"NVMe version: {Convert.ToString(ReadRegisters(0x08))}");
 
             bar_nvme = new() {
@@ -126,8 +157,6 @@ namespace TerminalOS_L.Driver.NVMe {
             FrConsole.WriteLine($"MQES: {Convert.ToString(MQES)}");
             FrConsole.WriteLine($"CQR: {Convert.ToString(CQR)}");
             FrConsole.WriteLine($"AMS: {Convert.ToString(AMS)}");
-
-            FrConsole.WriteLine($"NVMe Version: {Convert.ToString(bar_nvme.Version)}");
             byte TER = (byte)(bar_nvme.Version & 0xff); // get the first 8 bits (byte)
             var MNR = (bar_nvme.Version >> 8) & 0xff;
             var MJR = (bar_nvme.Version >> 16) & 0xff;
@@ -148,9 +177,12 @@ namespace TerminalOS_L.Driver.NVMe {
             FrConsole.WriteLine($"ASQ: {Convert.ToString(bar_nvme.AdminSubmissionQueue)}");
             FrConsole.WriteLine($"ASQB: {Convert.ToString(bar_nvme.AdminSubmissionQueue >> 12)}");
             FrConsole.WriteLine($"AQA: {Convert.ToString(bar_nvme.AdminQueueAttributes)}");
-            FrConsole.WriteLine($"ASQS: {Convert.ToString(bar_nvme.AdminQueueAttributes & 0x0FFF)}");
-            FrConsole.WriteLine($"ACQS: {Convert.ToString(bar_nvme.AdminQueueAttributes & 17 & 0x0FFF)}");
-
+            /*FrConsole.WriteLine($"ASQS: {Convert.ToString(bar_nvme.AdminQueueAttributes & 0x0FFF)}");
+            FrConsole.WriteLine($"ACQS: {Convert.ToString(bar_nvme.AdminQueueAttributes & 17 & 0x0FFF)}");*/
+            ReadDoorbell(DoorBellType.Submission,0,(uint)BaseAddr);
+            ReadDoorbell(DoorBellType.Completion,0,(uint)BaseAddr);
+            ReadDoorbell(DoorBellType.Submission,1,(uint)BaseAddr);
+            ReadDoorbell(DoorBellType.Completion,1,(uint)BaseAddr);
         }
     }
 }
