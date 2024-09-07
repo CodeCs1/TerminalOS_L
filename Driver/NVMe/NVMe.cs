@@ -6,6 +6,7 @@ using Cosmos.HAL;
 using TerminalOS_L.FrameBuffer;
 
 // https://nvmexpress.org/wp-content/uploads/NVM-Express-Base-Specification-Revision-2.1-2024.08.05-Ratified.pdf
+// For NVMe 1.2 version: https://www.nvmexpress.org/wp-content/uploads/NVM-Express-1_2a.pdf
 
 //A Cooked version of NVMe driver.
 
@@ -82,6 +83,8 @@ namespace TerminalOS_L.Driver.NVMe {
         // (1000h + ((2y) * (4 << CAP.DSTRD))
         // (1000h + ((2y+1) * (4 << CAP.DSTRD))
         // WTF ??
+        //The host should not read the doorbell registers. If a doorbell register is read, the value returned is vendor
+        //specific. Writing to a non-existent Submission Queue Tail Doorbell has undefined results
         private static void ReadDoorbell(DoorBellType type,
         uint index, uint BaseAddr) {
             uint DSTRD = (uint)((bar_nvme.ControllerCap >> 31) & 0xff);
@@ -97,9 +100,12 @@ namespace TerminalOS_L.Driver.NVMe {
                 default:
                     return;
             }
+            doorblock_mem[0] =0x54455354;
+            doorblock_mem[1] =0x54455354; //can't write!
+            // wdym the value return  0 ?
             FrConsole.WriteLine($"Doorbell at index: {Convert.ToString(index)}:");
-            for (int i=0;i<4;i++) {
-                FrConsole.Write($" {Convert.ToString(doorblock_mem[0])}");
+            for (uint i=0;i<3;i++) {
+                FrConsole.Write($" {Convert.ToString(doorblock_mem[i])}");
             }
             FrConsole.WriteLine();
         }
@@ -132,7 +138,6 @@ namespace TerminalOS_L.Driver.NVMe {
 
             //Read NVMe Base Addr
             bl = new((uint)BaseAddr,0x38);
-            //FrConsole.WriteLine($"NVMe version: {Convert.ToString(ReadRegisters(0x08))}");
 
             bar_nvme = new() {
                 ControllerCap = ReadRegisters(0),
@@ -145,7 +150,7 @@ namespace TerminalOS_L.Driver.NVMe {
                 AdminSubmissionQueue = ReadRegisters(0x28),
                 AdminCompletionQueue = ReadRegisters(0x30)
             };
-            var MQES = bar_nvme.ControllerCap & 0x0ffff; // get first 15 bit or value
+            var MQES = bar_nvme.ControllerCap & 0x0ffff; // get first 15 bit of value
             var CQR = BitPort.GetBit((uint)bar_nvme.ControllerCap, 16);
             byte[] bAMS =  {
                 BitPort.GetBit((uint)bar_nvme.ControllerCap, 17),
@@ -165,6 +170,12 @@ namespace TerminalOS_L.Driver.NVMe {
 
             var Enable = bar_nvme.ControllerConfig & 1; // get the first bit
             FrConsole.WriteLine($"Control Config: {Convert.ToString(bar_nvme.ControllerConfig)}");
+            if (Enable == 0) {
+                uint tmp = bar_nvme.ControllerConfig & 1 | (1 << 0); // Enable the Device
+                WriteRegisters(0x14, tmp);
+                bar_nvme.ControllerConfig = ReadRegisters(0x14);
+            }
+            FrConsole.WriteLine($"Control Config (after): {Convert.ToString(bar_nvme.ControllerConfig)}");
             FrConsole.WriteLine($"Enable: {Convert.ToString(Enable)}");
             FrConsole.WriteLine($"IOCQES: {Convert.ToString((bar_nvme.ControllerConfig >> 20) & 0x0f)}");
             
@@ -176,13 +187,11 @@ namespace TerminalOS_L.Driver.NVMe {
             WriteRegisters(0x20, 0x4E564D65);
             FrConsole.WriteLine($"ASQ: {Convert.ToString(bar_nvme.AdminSubmissionQueue)}");
             FrConsole.WriteLine($"ASQB: {Convert.ToString(bar_nvme.AdminSubmissionQueue >> 12)}");
-            FrConsole.WriteLine($"AQA: {Convert.ToString(bar_nvme.AdminQueueAttributes)}");
-            /*FrConsole.WriteLine($"ASQS: {Convert.ToString(bar_nvme.AdminQueueAttributes & 0x0FFF)}");
-            FrConsole.WriteLine($"ACQS: {Convert.ToString(bar_nvme.AdminQueueAttributes & 17 & 0x0FFF)}");*/
-            ReadDoorbell(DoorBellType.Submission,0,(uint)BaseAddr);
-            ReadDoorbell(DoorBellType.Completion,0,(uint)BaseAddr);
-            ReadDoorbell(DoorBellType.Submission,1,(uint)BaseAddr);
-            ReadDoorbell(DoorBellType.Completion,1,(uint)BaseAddr);
+            FrConsole.WriteLine($"ACQ: {Convert.ToString(bar_nvme.AdminCompletionQueue)}");
+            FrConsole.WriteLine($"ACQB: {Convert.ToString(bar_nvme.AdminCompletionQueue >> 12)}");
+            FrConsole.WriteLine($"ASQS: {Convert.ToString(bar_nvme.AdminQueueAttributes & 0x0FFF)}");
+            FrConsole.WriteLine($"ACQS: {Convert.ToString(bar_nvme.AdminQueueAttributes & 17 & 0x0FFF)}");
+            //ReadDoorbell(DoorBellType.Submission,0,(uint)BaseAddr);
         }
     }
 }
