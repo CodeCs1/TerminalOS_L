@@ -6,7 +6,6 @@ All the changes of TerminalOS_L will be written here.
 ## Updated.
 - Replace VGA with VBE (very useful in UEFI environment)
 
-
 ## Fixed.
 - Nothing is added yet.
 
@@ -15,3 +14,14 @@ All the changes of TerminalOS_L will be written here.
 - Paging.
 - FAT32 driver.
 
+# [1.0.1 DEVELOPMENT RELEASE] - 2024-08-09
+
+## Updated.
+- Get some basic information about NVMe device.
+- Change prompt from '$' -> '#'.
+
+## Fixed.
+- Some english typo.
+
+## In development.
+- AHCI, NVMe driver.

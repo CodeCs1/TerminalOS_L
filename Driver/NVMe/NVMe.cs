@@ -103,7 +103,7 @@ namespace TerminalOS_L.Driver.NVMe {
             doorblock_mem[0] =0x54455354;
             doorblock_mem[1] =0x54455354; //can't write!
             // wdym the value return  0 ?
-            FrConsole.WriteLine($"Doorbell at index: {Convert.ToString(index)}:");
+            FrConsole.Write($"Doorbell at index: {Convert.ToString(index)}:");
             for (uint i=0;i<3;i++) {
                 FrConsole.Write($" {Convert.ToString(doorblock_mem[i])}");
             }
@@ -184,14 +184,16 @@ namespace TerminalOS_L.Driver.NVMe {
             FrConsole.WriteLine($"Controller Status: {Convert.ToString(bar_nvme.ControllerStatus)}");
             FrConsole.WriteLine($"Ready: {Convert.ToString(bar_nvme.ControllerStatus & 1)}");
             //Testing NVM SubSystem Reset
-            WriteRegisters(0x20, 0x4E564D65);
+            WriteRegisters(0x20, 0x4E564D65); // I don't think this can reset the subsystem
             FrConsole.WriteLine($"ASQ: {Convert.ToString(bar_nvme.AdminSubmissionQueue)}");
             FrConsole.WriteLine($"ASQB: {Convert.ToString(bar_nvme.AdminSubmissionQueue >> 12)}");
             FrConsole.WriteLine($"ACQ: {Convert.ToString(bar_nvme.AdminCompletionQueue)}");
             FrConsole.WriteLine($"ACQB: {Convert.ToString(bar_nvme.AdminCompletionQueue >> 12)}");
             FrConsole.WriteLine($"ASQS: {Convert.ToString(bar_nvme.AdminQueueAttributes & 0x0FFF)}");
             FrConsole.WriteLine($"ACQS: {Convert.ToString(bar_nvme.AdminQueueAttributes & 17 & 0x0FFF)}");
-            //ReadDoorbell(DoorBellType.Submission,0,(uint)BaseAddr);
+            ReadDoorbell(DoorBellType.Submission,0,(uint)BaseAddr);
+            ReadDoorbell(DoorBellType.Submission,1,(uint)BaseAddr);
+            ReadDoorbell(DoorBellType.Submission,2,(uint)BaseAddr);
         }
     }
 }

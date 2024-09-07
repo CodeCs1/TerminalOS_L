@@ -88,9 +88,9 @@ namespace TerminalOS_L
         protected override void Run()
         {
             if (string.IsNullOrEmpty(Getroot.Path)) {
-                FrConsole.Write("$ ");
+                FrConsole.Write("# ");
             } else {
-                FrConsole.Write($"[{Getroot.Path}]~$ ");
+                FrConsole.Write($"[{Getroot.Path}]~# ");
             }
             var input = FrConsole.ReadLine();
             FrConsole.WriteLine(cm.Input(input));
