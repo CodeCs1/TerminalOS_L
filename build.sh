@@ -1,8 +1,22 @@
 #!/bin/sh
 
+# This build script used to make your life easier (except for fish shell...)
+
+
 dotnet build
 if [ $? -ne 0 ]; then
     exit 1
+fi
+
+if [[ $1 == "-run" ]]; then
+    echo "Press Ctrl+Z or Ctrl+C to terminate the process..."
+    if [[ ! -z $2 ]]; then
+        VirtualBoxVM --startvm $2
+        exit 0
+    else
+        VirtualBoxVM --startvm 'CosmosCs'
+        exit 0
+    fi
 fi
 
 pushd ./bin/cosmos/Debug/net6.0
@@ -26,3 +40,4 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 popd
+

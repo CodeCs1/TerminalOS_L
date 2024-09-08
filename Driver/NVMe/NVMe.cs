@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Text;
 using Cosmos.Core;
+using Cosmos.Core.Memory;
 using Cosmos.HAL;
 using TerminalOS_L.FrameBuffer;
 
@@ -18,7 +19,7 @@ namespace TerminalOS_L.Driver.NVMe {
             if (offset >=  0x39) {
                 FrConsole.BackgroundColor = Color.Red;
                 FrConsole.WriteLine("The offset of register can not greater-than 0x38 (56 in decimal).");
-                FrConsole.BackgroundColor = Color.White;
+                FrConsole.ResetColor();
                 return uint.MaxValue; // Can not find other value.
             } else {
                 return bl[offset];
@@ -125,6 +126,7 @@ namespace TerminalOS_L.Driver.NVMe {
             dev.EnableDevice();
             dev.EnableBusMaster(true);
             dev.EnableMemory(true);
+            Heap.Collect();
             BaseAddr = ((ulong)dev.BaseAddressBar[1].BaseAddress << 32) | (dev.BAR0 & 0xFFFFFFF0);
             var nvme_cap = (BaseAddr >> 12) &0xf;
 
@@ -170,10 +172,13 @@ namespace TerminalOS_L.Driver.NVMe {
 
             var Enable = bar_nvme.ControllerConfig & 1; // get the first bit
             FrConsole.WriteLine($"Control Config: {Convert.ToString(bar_nvme.ControllerConfig)}");
+            
             if (Enable == 0) {
+                //wydm can't be written ?
                 uint tmp = bar_nvme.ControllerConfig & 1 | (1 << 0); // Enable the Device
+                FrConsole.WriteLine($"Writing value: {Convert.ToString(tmp)} -> Controller Config");
                 WriteRegisters(0x14, tmp);
-                bar_nvme.ControllerConfig = ReadRegisters(0x14);
+                bar_nvme.ControllerConfig = ReadRegisters(0x14); // Read it again.
             }
             FrConsole.WriteLine($"Control Config (after): {Convert.ToString(bar_nvme.ControllerConfig)}");
             FrConsole.WriteLine($"Enable: {Convert.ToString(Enable)}");
