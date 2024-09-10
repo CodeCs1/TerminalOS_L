@@ -6,6 +6,7 @@ using TerminalOS_L.Driver.NVMe;
 using TerminalOS_L.FrameBuffer;
 using TerminalOS_L.Driver.VBox;
 using TerminalOS_L.System;
+using Cosmos.Core.MemoryGroup;
 
 namespace TerminalOS_L {
             //MemoryStream memtest2 = new(a);
@@ -17,7 +18,7 @@ namespace TerminalOS_L {
         }
         public override string Execute(string[] args)
         {
-            Console.WriteLine("All test case will be placed in this test command");
+            FrConsole.WriteLine("All test case will be placed in this test command");
 
             //Seek with MemoryStream
             byte[] a = {3,4,2,5,6};
@@ -51,16 +52,21 @@ namespace TerminalOS_L {
             if (Getroot.ata == null) {
                 Message.Send_Warning("Skip ata test");
             } else {
-
+                byte[] b = new byte[] {
+                    0x00,0x06,0x10,0x23
+                };
+                Getroot.ata.Write28(0,4,ref b);
+                Getroot.ata.Read28(0,4,ref b);
+                Kernel.PrintByteArray(b);
             }
             _ = new NVMe();
-            _ = new VBox();
-
+            //NVMe.DisableDevice();
             /*FrameBuffer.FrConsole fr =new();
             FrameBuffer.FrConsole.WriteLine("Done!");*/
 
-            /*FrConsole.WriteLine("Testing Unicode #1: こんにちは <- It should be: Konnichiha");
-            FrConsole.WriteLine("Testing Unicode #2: xin chào, đây là một câu ví dụ. <- It should be: xin chao, day la mot cau vi du.");*/
+            FrConsole.WriteLine("Testing Unicode #1: こんにちは <- It should be: Konnichiha");
+            FrConsole.WriteLine("Testing Unicode #2: xin chào, đây là một câu ví dụ. <- It should be: xin chao, day la mot cau vi du.");
+            FrConsole.WriteChr('đ');
 
             Message.Send("If you gone this far, then congrat!");
 

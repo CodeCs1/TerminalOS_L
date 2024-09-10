@@ -33,6 +33,8 @@ Or if you're using Visual Studio, just click on Build -> Build Solution
     - [ ] AHCI, NVMe[^3] Driver Support.
     - [ ] Floppy Disk Driver Support.
     - [ ] Virtual Machine Guest (VirtualBox, VMWare, HyperV, QEMU)
+    - [ ] Doing some USB Implementation. (xHCI)
+    - [ ] Some Plug-n-Play driver.
 
 
 [^1]: I don't know if Cosmos C# is support MacOS

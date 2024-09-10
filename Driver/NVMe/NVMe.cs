@@ -114,18 +114,53 @@ namespace TerminalOS_L.Driver.NVMe {
         private static BAR_NVMe bar_nvme;
 
         // That is a lot of writeline...
+        public bool IsEnable;
+        public string Version;
+
+        public static void EnableDevice() {
+            //Get Controller Config value.
+            var Enable = bar_nvme.ControllerConfig & 1;
+            if (Enable == 0) {
+                uint tmp = bar_nvme.ControllerConfig & 1 | (1 << 0); // Enable the Device
+                WriteRegisters(0x14, tmp);
+                bar_nvme.ControllerConfig = ReadRegisters(0x14); // Read it again.
+            } else {
+                FrConsole.WriteLine("The device is already enabled.");
+            }
+        }
+
+        public static void DisableDevice() {
+            //Get Controller Config value.
+            var Enable = bar_nvme.ControllerConfig & 1;
+            if (Enable == 1) {
+                uint tmp = bar_nvme.ControllerConfig & 1 | (0 << 0); // Disable the Device
+                WriteRegisters(0x14, tmp);
+                bar_nvme.ControllerConfig = ReadRegisters(0x14); // Read it again.
+            } else {
+                FrConsole.WriteLine("The device is already disabled.");
+            }
+        }
+
         public NVMe() {
             PCIDevice dev = PCI.GetDeviceClass(ClassID.MassStorageController,SubclassID.NVMController);
-            if (dev.DeviceExists) {
+            if (dev.ClassCode == (ushort)ClassID.MassStorageController &&
+            dev.Subclass == (byte)SubclassID.NVMController) {
                 Message.Send_Log("Found NVMe device.");
                 Message.Send_Log($"{dev.bus}:{dev.DeviceID}.{dev.function} Non-Volatile memory controller: {PCIDevice.DeviceClass.GetDeviceString(dev)}");
             } else {
                 Message.Send_Error("No NVMe device was found!");
                 return;
             }
+
+            if (IsEnable) {
+                FrConsole.WriteLine("The device is already enable, skipping...");
+                FrConsole.WriteLine($"Getting NVMe version: {Version}");
+                return;
+            }
             dev.EnableDevice();
             dev.EnableBusMaster(true);
             dev.EnableMemory(true);
+            IsEnable=true;
             Heap.Collect();
             BaseAddr = ((ulong)dev.BaseAddressBar[1].BaseAddress << 32) | (dev.BAR0 & 0xFFFFFFF0);
             var nvme_cap = (BaseAddr >> 12) &0xf;
@@ -169,27 +204,18 @@ namespace TerminalOS_L.Driver.NVMe {
             var MJR = (bar_nvme.Version >> 16) & 0xff;
             FrConsole.WriteLine(PrintNVMeVersion(MJR,MNR,TER));
 
+            Version = PrintNVMeVersion(MJR,MNR,TER);
 
             var Enable = bar_nvme.ControllerConfig & 1; // get the first bit
             FrConsole.WriteLine($"Control Config: {Convert.ToString(bar_nvme.ControllerConfig)}");
-            
-            if (Enable == 0) {
-                //wydm can't be written ?
-                uint tmp = bar_nvme.ControllerConfig & 1 | (1 << 0); // Enable the Device
-                FrConsole.WriteLine($"Writing value: {Convert.ToString(tmp)} -> Controller Config");
-                WriteRegisters(0x14, tmp);
-                bar_nvme.ControllerConfig = ReadRegisters(0x14); // Read it again.
-            }
-            FrConsole.WriteLine($"Control Config (after): {Convert.ToString(bar_nvme.ControllerConfig)}");
             FrConsole.WriteLine($"Enable: {Convert.ToString(Enable)}");
             FrConsole.WriteLine($"IOCQES: {Convert.ToString((bar_nvme.ControllerConfig >> 20) & 0x0f)}");
-            
             uint CRIME = (bar_nvme.ControllerConfig >> 24) & 0xf & 1;
             FrConsole.WriteLine($"CRIME: {Convert.ToString(CRIME)}");
             FrConsole.WriteLine($"Controller Status: {Convert.ToString(bar_nvme.ControllerStatus)}");
             FrConsole.WriteLine($"Ready: {Convert.ToString(bar_nvme.ControllerStatus & 1)}");
             //Testing NVM SubSystem Reset
-            WriteRegisters(0x20, 0x4E564D65); // I don't think this can reset the subsystem
+            WriteRegisters(0x20, 0x4E564D65);
             FrConsole.WriteLine($"ASQ: {Convert.ToString(bar_nvme.AdminSubmissionQueue)}");
             FrConsole.WriteLine($"ASQB: {Convert.ToString(bar_nvme.AdminSubmissionQueue >> 12)}");
             FrConsole.WriteLine($"ACQ: {Convert.ToString(bar_nvme.AdminCompletionQueue)}");
@@ -197,8 +223,6 @@ namespace TerminalOS_L.Driver.NVMe {
             FrConsole.WriteLine($"ASQS: {Convert.ToString(bar_nvme.AdminQueueAttributes & 0x0FFF)}");
             FrConsole.WriteLine($"ACQS: {Convert.ToString(bar_nvme.AdminQueueAttributes & 17 & 0x0FFF)}");
             ReadDoorbell(DoorBellType.Submission,0,(uint)BaseAddr);
-            ReadDoorbell(DoorBellType.Submission,1,(uint)BaseAddr);
-            ReadDoorbell(DoorBellType.Submission,2,(uint)BaseAddr);
         }
     }
 }

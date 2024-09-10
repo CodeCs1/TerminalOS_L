@@ -150,6 +150,7 @@ namespace TerminalOS_L.Driver.AHCI {
             // Built-in AHCI just...crash.
             //Cosmos.HAL.BlockDevice.AHCI _ = new (pci);
             var memblock = new MemoryBlock(pci.ReadRegister32(0x24),0x100);
+            FrConsole.WriteLine($"ABAR Value: {pci.ReadRegister32(0x24)}");
             dev=new() {
                 Bar = pci.ReadRegister32(0x24) , // Get BAR5 Register
                 mem = new() {
@@ -164,9 +165,6 @@ namespace TerminalOS_L.Driver.AHCI {
             dev.mem.PortImpl = GetAHCIRegister(memblock,0x0C);
             FrConsole.WriteLine($"Port Implemented: {Convert.ToString(dev.mem.PortImpl)}");
             ProbePort(dev.mem);
-            FrConsole.WriteLine($"Port 0 CLB: {dev.mem.port[0].CLB}");
-            findCmd(dev.mem.port[0]);
-            StartCommand(dev.mem.port[0]);
         }
     }
 }
