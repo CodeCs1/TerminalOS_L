@@ -114,8 +114,8 @@ namespace TerminalOS_L.Driver.NVMe {
         private static BAR_NVMe bar_nvme;
 
         // That is a lot of writeline...
-        public bool IsEnable;
-        public string Version;
+        public static bool IsEnable=false;
+        public static string Version;
 
         public static void EnableDevice() {
             //Get Controller Config value.
@@ -155,13 +155,13 @@ namespace TerminalOS_L.Driver.NVMe {
             if (IsEnable) {
                 FrConsole.WriteLine("The device is already enable, skipping...");
                 FrConsole.WriteLine($"Getting NVMe version: {Version}");
+                FrConsole.WriteLine($"Getting 'Enable' value: {Convert.ToString(bar_nvme.ControllerConfig & 1)}");
                 return;
             }
             dev.EnableDevice();
             dev.EnableBusMaster(true);
             dev.EnableMemory(true);
             IsEnable=true;
-            Heap.Collect();
             BaseAddr = ((ulong)dev.BaseAddressBar[1].BaseAddress << 32) | (dev.BAR0 & 0xFFFFFFF0);
             var nvme_cap = (BaseAddr >> 12) &0xf;
 
@@ -175,7 +175,6 @@ namespace TerminalOS_L.Driver.NVMe {
 
             //Read NVMe Base Addr
             bl = new((uint)BaseAddr,0x38);
-
             bar_nvme = new() {
                 ControllerCap = ReadRegisters(0),
                 Version = ReadRegisters(0x08),
@@ -207,6 +206,12 @@ namespace TerminalOS_L.Driver.NVMe {
             Version = PrintNVMeVersion(MJR,MNR,TER);
 
             var Enable = bar_nvme.ControllerConfig & 1; // get the first bit
+            if (Enable == 0 && !IsEnable) {
+                uint tmp = bar_nvme.ControllerConfig & 1 | (1 << 0); // Enable the Device
+                WriteRegisters(0x14, tmp);
+                bar_nvme.ControllerConfig = ReadRegisters(0x14);
+                Enable = bar_nvme.ControllerConfig & 1; // ?
+            }
             FrConsole.WriteLine($"Control Config: {Convert.ToString(bar_nvme.ControllerConfig)}");
             FrConsole.WriteLine($"Enable: {Convert.ToString(Enable)}");
             FrConsole.WriteLine($"IOCQES: {Convert.ToString((bar_nvme.ControllerConfig >> 20) & 0x0f)}");
