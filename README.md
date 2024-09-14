@@ -1,24 +1,27 @@
 # TerminalOS_L (Terminal OS Linux reborn)
-This project is used to restore the old TerminalOS Project with some new features and fixes.
+![sign](Artwork/OS_Sign.png)
+![NETver](https://img.shields.io/badge/.Net_version-8.0-green?logo=dotnet&?style=flat)
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+
+This project used to restore the old TerminalOS Project with some new features and fixes.
 
 If you want to see the old one, check it here: [Old project github link](https://github.com/CodeCs1/TerminalOS-v1-C-)
 
 > [!NOTE]
 > This should be worked on all PC platform[^1]
 
-# Requirement
+## Requirement
 1. Latest version of dotnet 
 2. Cosmos C# DevKit[^2]
 
-# Compilation.
-> Compilation:<br>
-To compile this, open up your favorite Terminal and type this command:
+## Installation
+> Compiling this by typing this command to Terminal.
 ```sh
 dotnet build
 ```
 Or if you're using Visual Studio, just click on Build -> Build Solution
 
-* Road Map:
+## Road Map
     - [x] A custom ATA PIO Driver.
     - [x] GUI forked from Win 1.0.<sup>Just done the basic</sup>
     - [x] MBR and GPT Partition table.
@@ -35,6 +38,7 @@ Or if you're using Visual Studio, just click on Build -> Build Solution
     - [ ] Virtual Machine Guest (VirtualBox, VMWare, HyperV, QEMU)
     - [ ] Doing some USB Implementation. (xHCI)
     - [ ] Some Plug-n-Play driver.
+    - [ ] Some network support.
 
 
 [^1]: I don't know if Cosmos C# is support MacOS

@@ -156,6 +156,7 @@ namespace TerminalOS_L.Driver.NVMe {
                 FrConsole.WriteLine("The device is already enable, skipping...");
                 FrConsole.WriteLine($"Getting NVMe version: {Version}");
                 FrConsole.WriteLine($"Getting 'Enable' value: {Convert.ToString(bar_nvme.ControllerConfig & 1)}");
+                FrConsole.WriteLine($"Gettind 'Ready' value: {Convert.ToString(bar_nvme.ControllerStatus & 1)}");
                 return;
             }
             dev.EnableDevice();
@@ -214,20 +215,26 @@ namespace TerminalOS_L.Driver.NVMe {
             }
             FrConsole.WriteLine($"Control Config: {Convert.ToString(bar_nvme.ControllerConfig)}");
             FrConsole.WriteLine($"Enable: {Convert.ToString(Enable)}");
-            FrConsole.WriteLine($"IOCQES: {Convert.ToString((bar_nvme.ControllerConfig >> 20) & 0x0f)}");
-            uint CRIME = (bar_nvme.ControllerConfig >> 24) & 0xf & 1;
-            FrConsole.WriteLine($"CRIME: {Convert.ToString(CRIME)}");
+            //FrConsole.WriteLine($"IOCQES: {Convert.ToString((bar_nvme.ControllerConfig >> 20) & 0x0f)}");
+            //uint CRIME = (bar_nvme.ControllerConfig >> 24) & 0xf & 1;
+            //FrConsole.WriteLine($"CRIME: {Convert.ToString(CRIME)}");
             FrConsole.WriteLine($"Controller Status: {Convert.ToString(bar_nvme.ControllerStatus)}");
             FrConsole.WriteLine($"Ready: {Convert.ToString(bar_nvme.ControllerStatus & 1)}");
             //Testing NVM SubSystem Reset
             WriteRegisters(0x20, 0x4E564D65);
+            /*
             FrConsole.WriteLine($"ASQ: {Convert.ToString(bar_nvme.AdminSubmissionQueue)}");
             FrConsole.WriteLine($"ASQB: {Convert.ToString(bar_nvme.AdminSubmissionQueue >> 12)}");
             FrConsole.WriteLine($"ACQ: {Convert.ToString(bar_nvme.AdminCompletionQueue)}");
             FrConsole.WriteLine($"ACQB: {Convert.ToString(bar_nvme.AdminCompletionQueue >> 12)}");
             FrConsole.WriteLine($"ASQS: {Convert.ToString(bar_nvme.AdminQueueAttributes & 0x0FFF)}");
             FrConsole.WriteLine($"ACQS: {Convert.ToString(bar_nvme.AdminQueueAttributes & 17 & 0x0FFF)}");
+            */
             ReadDoorbell(DoorBellType.Submission,0,(uint)BaseAddr);
+            Queue q=new();
+            if (CreateAdminCompletion(q)) {
+                FrConsole.WriteLine($"Admin Completetion Addr: {Convert.ToString(q.Address)}");
+            }
         }
     }
 }
