@@ -1,5 +1,6 @@
 # TerminalOS_L (Terminal OS Linux reborn)
 ![sign](Artwork/OS_Sign.png)
+
 ![NETver](https://img.shields.io/badge/.Net_version-8.0-green?logo=dotnet&?style=flat)
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
@@ -22,23 +23,23 @@ dotnet build
 Or if you're using Visual Studio, just click on Build -> Build Solution
 
 ## Road Map
-    - [x] A custom ATA PIO Driver.
-    - [x] GUI forked from Win 1.0.<sup>Just done the basic</sup>
-    - [x] MBR and GPT Partition table.
-    - [x] Ext2, FAT32 File System Support.<sup>Read-only</sup>
-    - [ ] Network Support.
-    - [ ] EXT3/EXT4, NTFS File System Support.
-    - [ ] A VFS replacement.
-    - [ ] A custom ATAPI Driver.<sup>CDRom driver</sup>
-    - [ ] Porting lua programming language.
-    - [ ] ELF Reader and Loader.<sup>Exe file as well</sup>
-    - [ ] Windows-like path.
-    - [ ] AHCI, NVMe[^3] Driver Support.
-    - [ ] Floppy Disk Driver Support.
-    - [ ] Virtual Machine Guest (VirtualBox, VMWare, HyperV, QEMU)
-    - [ ] Doing some USB Implementation. (xHCI)
-    - [ ] Some Plug-n-Play driver.
-    - [ ] Some network support.
+- [x] A custom ATA PIO Driver.
+- [x] GUI forked from Win 1.0.<sup>Just done the basic</sup>
+- [x] MBR and GPT Partition table.
+- [x] Ext2, FAT32 File System Support.<sup>Read-only</sup>
+- [ ] Network Support.
+- [ ] EXT3/EXT4, NTFS File System Support.
+- [ ] A VFS replacement.
+- [ ] A custom ATAPI Driver.<sup>CDRom driver</sup>
+- [ ] Porting lua programming language.
+- [ ] ELF Reader and Loader.<sup>Exe file as well</sup>
+- [ ] Windows-like path.
+- [ ] AHCI, NVMe[^3] Driver Support.
+- [ ] Floppy Disk Driver Support.
+- [ ] Virtual Machine Guest (VirtualBox, VMWare, HyperV, QEMU)
+- [ ] Doing some USB Implementation. (xHCI)
+- [ ] Some Plug-n-Play driver.
+- [ ] Some network support.
 
 
 [^1]: I don't know if Cosmos C# is support MacOS
