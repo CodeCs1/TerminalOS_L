@@ -23,16 +23,16 @@ namespace TerminalOS_L.Windows {
         public void Init() {
             /*Window*/
             can.DrawFilledRectangle(Color.FromArgb(5592575),x,y,width,height-50);
-            can.DrawFilledRectangle(Color.FromArgb(16777045),0,20,width,20);
-            can.DrawFilledRectangle(Color.White,0,40,width,height-90);
+            //can.DrawFilledRectangle(Color.FromArgb(16777045),0,20,width,20);
+            can.DrawFilledRectangle(Color.White,x,y+20,width,height-70);
             /*Button Bar*/
-            can.DrawFilledRectangle(Color.White,0,0,20,20);
+            can.DrawFilledRectangle(Color.White,x,y,20,20);
             can.DrawFilledRectangle(Color.White,width-20,0,20,20);
             /*Title*/
             int TextLocation = (width/2)-title.Length;
             can.DrawString(title,PCScreenFont.Default,Color.White,TextLocation,y);
             /*Line*/ 
-            can.DrawLine(Color.Black,0,20,width,20);
+            can.DrawLine(Color.Black,x,y+20,width,20);
         }
 
         public virtual void Update() {}

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Drawing;
 using Cosmos.Core;
 using Cosmos.HAL;
 using TerminalOS_L.FrameBuffer;
@@ -19,6 +21,7 @@ namespace TerminalOS_L.Driver.AHCI {
         public unsafe struct AHCI_Dev {
             public uint Bar;
             public HBA_MEM mem;
+            public string name;
         }
         private void AHCI_Handler(ref INTs.IRQContext aContext) {
             FrConsole.WriteLine("This should be work.");
@@ -95,15 +98,19 @@ namespace TerminalOS_L.Driver.AHCI {
                     switch(dt) {
                         case 1:
                             FrConsole.WriteLine($"SATA Found at port: {Convert.ToString(i)}");
+                            port_impl.Add(i);
                             break;
                         case 2:
                             FrConsole.WriteLine($"SATAPI Found at port: {Convert.ToString(i)}");
+                            port_impl.Add(i);
                             break;
                         case 3:
                             FrConsole.WriteLine($"EMB Found at port: {Convert.ToString(i)}");
+                            port_impl.Add(i);
                             break;
                         case 4:
                             FrConsole.WriteLine($"PM Found at port: {Convert.ToString(i)}");
+                            port_impl.Add(i);
                             break;
                         default:
                             FrConsole.WriteLine($"No Drive found at port: {Convert.ToString(i)}");
@@ -144,13 +151,50 @@ namespace TerminalOS_L.Driver.AHCI {
 
         private static AHCI_Dev dev;
 
+        private static void GetVersion(ref AHCI_Dev dev) {
+            uint minor = dev.mem.Version & 0x0FFFF;
+            uint major = dev.mem.Version >> 16;
+            minor = (minor >> 8) | ((minor & 0x0F) << 4);
+            dev.name = $"AHCI version: {Convert.ToString(major)}.{Convert.ToString(minor)}";
+        }
+
+        private static void ReadCommandList(int portno, AHCI_Dev dev) {
+            if (dev.mem.port[portno].CLB == 0) {
+                FrConsole.ForegroundColor = Color.OrangeRed;
+                FrConsole.WriteLine("The AHCI port you selected is not allocated!");
+                FrConsole.ResetColor();
+                return;
+            }
+            ulong addr = ((ulong)dev.mem.port[portno].CLBU << 32) | dev.mem.port[portno].CLB;
+            FrConsole.WriteLine($"Command and Status: {Convert.ToString(dev.mem.port[portno].Command)}");
+            MemoryBlock clbbl = new((uint)addr,0x21);
+            FrConsole.WriteLine($"DW0 of Port {Convert.ToString(portno)}: {Convert.ToString(clbbl[0])}");
+            uint dw0 = clbbl[0];
+            uint Length = dw0 & 0xF;
+            uint PRDTL = dw0 >> 16;
+            bool IsATAPI = (dw0 & 5)==0;
+            if (Length == 0 || Length == 1 || Length >= 16*4) {
+                FrConsole.ForegroundColor = Color.OrangeRed;
+                FrConsole.WriteLine("Illegal Command List Length!");
+                FrConsole.ResetColor();
+                return;
+            }
+            FrConsole.WriteLine($"Length of Command List: {Convert.ToString(Length)}");
+            FrConsole.WriteLine($"Physical Region Descriptor Table Length: {Convert.ToString(PRDTL)}");
+            FrConsole.WriteLine($"Is ATAPI device ?: {Convert.ToString(IsATAPI)}");
+        }
+        // Let's go!!!!!
+        private static void Identify(int portno, AHCI_Dev dev) {
+            ReadCommandList(portno,dev);   
+        }
+        public static List<int> port_impl;
+ 
         public AHCI() {
             pci.EnableDevice();
             pci.EnableMemory(true);
             // Built-in AHCI just...crash.
             //Cosmos.HAL.BlockDevice.AHCI _ = new (pci);
             var memblock = new MemoryBlock(pci.ReadRegister32(0x24),0x100);
-            FrConsole.WriteLine($"ABAR Value: {pci.ReadRegister32(0x24)}");
             dev=new() {
                 Bar = pci.ReadRegister32(0x24) , // Get BAR5 Register
                 mem = new() {
@@ -160,11 +204,18 @@ namespace TerminalOS_L.Driver.AHCI {
             SetAHCIRegister(memblock,31,1,dev.mem.ghc); // Enable AHCI
             Message.Send("AHCI Enabled");
             dev.mem.cap = GetAHCIRegister(memblock,0);
+            dev.mem.Version = GetAHCIRegister(memblock,0x10);
+            GetVersion(ref dev);
             INTs.SetIrqHandler(pci.InterruptLine, AHCI_Handler);
+            SetAHCIRegister(memblock,1,1,dev.mem.ghc);
             FrConsole.WriteLine($"Host Capabilities: {Convert.ToString(dev.mem.cap)}");
+            FrConsole.WriteLine($"AHCI Version: {dev.name}");
             dev.mem.PortImpl = GetAHCIRegister(memblock,0x0C);
             FrConsole.WriteLine($"Port Implemented: {Convert.ToString(dev.mem.PortImpl)}");
             ProbePort(dev.mem);
+            foreach(int portno in port_impl) {
+                Identify(portno,dev);
+            }
         }
     }
 }

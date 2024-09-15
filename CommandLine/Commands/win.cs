@@ -70,16 +70,14 @@ namespace TerminalOS_L {
                 Sys.MouseManager.ScreenHeight = 600;
                 Sys.MouseManager.X = 800/2;
                 Sys.MouseManager.Y = 600/2;
-                MSExe exe = new (canvas,"MS-DOS Executable",800,600);
 
                 while(true) {
                     Point cur = new((int)Sys.MouseManager.X, (int)Sys.MouseManager.Y);
                     canvas.DrawPoint(Color.Black, cur.X, cur.Y);
 
-                    if (Sys.MouseManager.MouseState == Sys.MouseState.Left) {
-                        Sys.PCSpeaker.Beep();
-                    }
+                    MSExe exe = new(canvas,"MS-DOS Executable", 800,600);
                     exe.Init();
+
                     DrawCursor(Sys.MouseManager.X,Sys.MouseManager.Y);
                     canvas.Display();
                     canvas.Clear(5635925);

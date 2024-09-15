@@ -156,7 +156,7 @@ namespace TerminalOS_L.Driver.NVMe {
                 FrConsole.WriteLine("The device is already enable, skipping...");
                 FrConsole.WriteLine($"Getting NVMe version: {Version}");
                 FrConsole.WriteLine($"Getting 'Enable' value: {Convert.ToString(bar_nvme.ControllerConfig & 1)}");
-                FrConsole.WriteLine($"Gettind 'Ready' value: {Convert.ToString(bar_nvme.ControllerStatus & 1)}");
+                FrConsole.WriteLine($"Getting 'Ready' value: {Convert.ToString(bar_nvme.ControllerStatus & 1)}");
                 return;
             }
             dev.EnableDevice();

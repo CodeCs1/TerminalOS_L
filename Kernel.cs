@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Cosmos.Core.Multiboot;
 using Cosmos.HAL;
 using Cosmos.HAL.Drivers.Audio;
 using TerminalOS_L.Driver.AHCI;

@@ -24,8 +24,6 @@ namespace TerminalOS_L.FrameBuffer {
             consoleCanvas = new(new Mode(Width, Height, ColorDepth.ColorDepth32));
             consoleCanvas.Clear(0);
             f = PCScreenFont.LoadFont(ConsoleFont);
-            Bitmap bitmap=new(100,100,ColorDepth.ColorDepth32);
-            consoleCanvas.DrawImage(bitmap,700,0);
             consoleCanvas.Display();
         }
 
