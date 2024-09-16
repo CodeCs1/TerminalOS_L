@@ -182,6 +182,14 @@ namespace TerminalOS_L.Driver.AHCI {
             FrConsole.WriteLine($"Length of Command List: {Convert.ToString(Length)}");
             FrConsole.WriteLine($"Physical Region Descriptor Table Length: {Convert.ToString(PRDTL)}");
             FrConsole.WriteLine($"Is ATAPI device ?: {Convert.ToString(IsATAPI)}");
+            ulong addr2 = clbbl[0x02] >> 7;
+            FrConsole.WriteLine($"CTB Addr: {Convert.ToString(clbbl[0x02] >> 7)} (Origanal: {Convert.ToString(clbbl[0x02])}) -> {Convert.ToString(addr2)}");
+            MemoryBlock ctba = new((uint)addr2,0x94);
+            FrConsole.Write($"Some value: ");
+            for (int i=0;i<4;i++) {
+                FrConsole.Write($"{Convert.ToString(ctba[0])} ");
+            }
+            FrConsole.WriteLine();
         }
         // Let's go!!!!!
         private static void Identify(int portno, AHCI_Dev dev) {

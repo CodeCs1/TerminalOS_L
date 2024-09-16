@@ -1,7 +1,7 @@
 # TerminalOS_L (Terminal OS Linux reborn)
 ![sign](Artwork/OS_Sign.png)
 
-![NETver](https://img.shields.io/badge/.Net_version-8.0-green?logo=dotnet&?style=flat)
+[![NETver](https://img.shields.io/badge/.Net_version-8.0-green?logo=dotnet&?style=flat)](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
 This project used to restore the old TerminalOS Project with some new features and fixes.
@@ -20,7 +20,7 @@ If you want to see the old one, check it here: [Old project github link](https:/
 ```sh
 dotnet build
 ```
-Or if you're using Visual Studio, just click on Build -> Build Solution
+> Or if you're using Visual Studio, just click on Build -> Build Solution
 
 ## Road Map
 - [x] A custom ATA PIO Driver.
