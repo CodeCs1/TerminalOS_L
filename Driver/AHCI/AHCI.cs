@@ -22,6 +22,7 @@ namespace TerminalOS_L.Driver.AHCI {
             public uint Bar;
             public HBA_MEM mem;
             public string name;
+            public bool Is64Support;
         }
         private void AHCI_Handler(ref INTs.IRQContext aContext) {
             FrConsole.WriteLine("This should be work.");
@@ -67,6 +68,7 @@ namespace TerminalOS_L.Driver.AHCI {
             uint Offset = (uint)(pci.ReadRegister32(0x24)+(0x100 + PortImpl * 0x80));
             PortBlock = new(Offset, 0x80);
             port = new() {
+                block = PortBlock,
                 CLB = PortBlock[0],
                 CLBU = PortBlock[0x04],
                 FB = PortBlock[0x08],
@@ -170,30 +172,50 @@ namespace TerminalOS_L.Driver.AHCI {
             MemoryBlock clbbl = new((uint)addr,0x21);
             FrConsole.WriteLine($"DW0 of Port {Convert.ToString(portno)}: {Convert.ToString(clbbl[0])}");
             uint dw0 = clbbl[0];
-            uint Length = dw0 & 0xF;
-            uint PRDTL = dw0 >> 16;
-            bool IsATAPI = (dw0 & 5)==0;
-            if (Length == 0 || Length == 1 || Length >= 16*4) {
+            HBA_CMD_HEADER header=new() {
+                CommandFISLength = (byte)(dw0 & 0xF),
+                prdtl = (ushort)(dw0 >> 16),
+                ATAPI = (byte)(dw0 & (1 << 5)),
+                Write = (byte)(dw0 & (1 << 6)),
+                Prefetch = (byte)(dw0 & (1 << 7)),
+                Reset = (byte)(dw0 & (1 << 8)),
+                BIST = (byte)(dw0 & (1 << 9)),
+                ClearBusy = (byte)(dw0 & (1 << 10)),
+                PortMultiplier = (byte)((dw0 >> 12)&0xF)
+            };
+
+            bool IsATAPI = header.ATAPI!=0;
+            if (header.CommandFISLength == 0 || header.CommandFISLength == 1) {
                 FrConsole.ForegroundColor = Color.OrangeRed;
                 FrConsole.WriteLine("Illegal Command List Length!");
                 FrConsole.ResetColor();
                 return;
             }
-            FrConsole.WriteLine($"Length of Command List: {Convert.ToString(Length)}");
-            FrConsole.WriteLine($"Physical Region Descriptor Table Length: {Convert.ToString(PRDTL)}");
+            FrConsole.WriteLine($"Length of Command List: {Convert.ToString(header.CommandFISLength)}");
+            FrConsole.WriteLine($"Physical Region Descriptor Table Length: {Convert.ToString(header.prdtl)}");
             FrConsole.WriteLine($"Is ATAPI device ?: {Convert.ToString(IsATAPI)}");
-            ulong addr2 = clbbl[0x03] << 4 | clbbl[0x02] >> 7;
-            FrConsole.WriteLine($"CTB Addr: {Convert.ToString(clbbl[0x02] >> 7)} (Origanal: {Convert.ToString(clbbl[0x02])}) -> {Convert.ToString(addr2)}");
+            ulong addr2;
+            if (dev.Is64Support)
+                addr2 = clbbl[0x03] << 32 | clbbl[0x02];
+            else
+                addr2 = clbbl[0x02];
+
+            FrConsole.WriteLine($"CTB Addr: {Convert.ToString(clbbl[0x02])} (Original: {Convert.ToString(clbbl[0x02])}) -> {Convert.ToString(addr2)}");
             MemoryBlock ctba = new((uint)addr2,0x100);
             FrConsole.Write($"Some value: ");
-            for (int i=0;i<4;i++) {
-                FrConsole.Write($"{Convert.ToString(ctba[0x80])} ");
+            for (uint i=0;i<4;i++) {
+                FrConsole.Write($"{Convert.ToString(ctba[i])} ");
             }
             FrConsole.WriteLine();
         }
         // Let's go!!!!!
         private static void Identify(int portno, AHCI_Dev dev) {
-            ReadCommandList(portno,dev);   
+            ReadCommandList(portno,dev); 
+            /*
+            FrConsole.WriteLine($"CI: {Convert.ToString(dev.mem.port[portno].CommandIssue)}");
+            dev.mem.port[portno].block[0x38] = 1; // start command from FIS
+            dev.mem.port[portno].CommandIssue = dev.mem.port[portno].block[0x38];
+            FrConsole.WriteLine($"CI: {Convert.ToString(dev.mem.port[portno].CommandIssue)}");*/
         }
         public static List<int> port_impl;
  
@@ -218,6 +240,8 @@ namespace TerminalOS_L.Driver.AHCI {
             SetAHCIRegister(memblock,1,1,dev.mem.ghc);
             FrConsole.WriteLine($"Host Capabilities: {Convert.ToString(dev.mem.cap)}");
             FrConsole.WriteLine($"AHCI Version: {dev.name}");
+            FrConsole.WriteLine($"Is support 64-bit addressing: {Convert.ToString((dev.mem.cap >> 31) & 1)}");
+            dev.Is64Support = ((dev.mem.cap >> 31) & 1) == 1;
             dev.mem.PortImpl = GetAHCIRegister(memblock,0x0C);
             FrConsole.WriteLine($"Port Implemented: {Convert.ToString(dev.mem.PortImpl)}");
             ProbePort(dev.mem);

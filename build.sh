@@ -25,12 +25,14 @@ if [[ ! -d "iso" ]]; then
 fi
 cp ./TerminalOS_L.bin ./iso/boot/TerminalOS_L.bin
 
-echo "set default = 0" > iso/boot/grub/grub.cfg
-echo "set timeout = 0" > iso/boot/grub/grub.cfg
-echo "menuentry \"TerminalOS_L C#\" {" > iso/boot/grub/grub.cfg
-echo "	multiboot2 /boot/TerminalOS_L.bin" > iso/boot/grub/grub.cfg
-echo "	boot" > iso/boot/grub/grub.cfg
-echo "}" > iso/boot/grub/grub.cfg
+if [[ ! -f "iso/boot/grub/grub.cfg" ]]; then
+	echo "set default = 0" >> iso/boot/grub/grub.cfg
+	echo "set timeout = 0" >> iso/boot/grub/grub.cfg
+	echo "menuentry \"TerminalOS_L C#\" {" >> iso/boot/grub/grub.cfg
+	echo "	multiboot2 /boot/TerminalOS_L.bin" >> iso/boot/grub/grub.cfg
+	echo "	boot" >> iso/boot/grub/grub.cfg
+	echo "}" >> iso/boot/grub/grub.cfg
+fi
 
 if [ $? -ne 0 ]; then
     exit 1

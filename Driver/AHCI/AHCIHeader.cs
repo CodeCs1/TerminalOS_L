@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using Cosmos.Core;
 
 //Send help...
 
@@ -190,6 +191,7 @@ public byte Type;
 
     [StructLayout(LayoutKind.Sequential)]
     public struct HBA_PORT {
+        public MemoryBlock block;
         public uint CLB;
         public uint CLBU;
         public uint FB;
