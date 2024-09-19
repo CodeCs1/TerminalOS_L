@@ -126,7 +126,7 @@ namespace TerminalOS_L.Driver.AHCI {
             }
         }
 
-        private void StartCommand(HBA_PORT port) {
+        private static void StartCommand(HBA_PORT port) {
             while((port.Command & 0x8000) != 0) {
                 FrConsole.Write(".");
                 port.Command = PortBlock[0x18];
@@ -169,6 +169,7 @@ namespace TerminalOS_L.Driver.AHCI {
             }
             ulong addr = ((ulong)dev.mem.port[portno].CLBU << 32) | dev.mem.port[portno].CLB;
             FrConsole.WriteLine($"Command and Status: {Convert.ToString(dev.mem.port[portno].Command)}");
+            FrConsole.WriteLine($"Start: {Convert.ToString(dev.mem.port[portno].Command & (1 << 0))}");
             MemoryBlock clbbl = new((uint)addr,0x21);
             FrConsole.WriteLine($"DW0 of Port {Convert.ToString(portno)}: {Convert.ToString(clbbl[0])}");
             uint dw0 = clbbl[0];
@@ -196,26 +197,90 @@ namespace TerminalOS_L.Driver.AHCI {
             FrConsole.WriteLine($"Is ATAPI device ?: {Convert.ToString(IsATAPI)}");
             ulong addr2;
             if (dev.Is64Support)
-                addr2 = clbbl[0x03] << 32 | clbbl[0x02];
+                addr2 = (ulong)clbbl[0x03] << 32 | clbbl[0x02];
             else
                 addr2 = clbbl[0x02];
 
             FrConsole.WriteLine($"CTB Addr: {Convert.ToString(clbbl[0x02])} (Original: {Convert.ToString(clbbl[0x02])}) -> {Convert.ToString(addr2)}");
             MemoryBlock ctba = new((uint)addr2,0x100);
+            FrConsole.WriteLine($"Data Rev: {Convert.ToString(ctba[0x80])}");
+        }
+        private static void WriteCommand2Device(int portno, AHCI_Dev dev, uint Command) {
+            if (dev.mem.port[portno].CLB == 0) {
+                FrConsole.ForegroundColor = Color.OrangeRed;
+                FrConsole.WriteLine("The AHCI port you selected is not allocated!");
+                FrConsole.ResetColor();
+                return;
+            }
+            ulong addr = ((ulong)dev.mem.port[portno].CLBU << 32) | dev.mem.port[portno].CLB;
+            FrConsole.WriteLine($"Command and Status: {Convert.ToString(dev.mem.port[portno].Command)}");
+            FrConsole.WriteLine($"Start: {Convert.ToString(dev.mem.port[portno].Command & (1 << 0))}");
+            MemoryBlock clbbl = new((uint)addr,0x21);
+            uint dw0 = clbbl[0];
+            HBA_CMD_HEADER header=new() {
+                CommandFISLength = (byte)(dw0 & 0xF),
+                prdtl = (ushort)(dw0 >> 16),
+                ATAPI = (byte)(dw0 & (1 << 5)),
+                Write = (byte)(dw0 & (1 << 6)),
+                Prefetch = (byte)(dw0 & (1 << 7)),
+                Reset = (byte)(dw0 & (1 << 8)),
+                BIST = (byte)(dw0 & (1 << 9)),
+                ClearBusy = (byte)(dw0 & (1 << 10)),
+                PortMultiplier = (byte)((dw0 >> 12)&0xF)
+            };
+
+            bool IsATAPI = header.ATAPI!=0;
+            if (header.CommandFISLength == 0 || header.CommandFISLength == 1) {
+                FrConsole.ForegroundColor = Color.OrangeRed;
+                FrConsole.WriteLine("Illegal Command List Length!");
+                FrConsole.ResetColor();
+                return;
+            }
+            FrConsole.WriteLine($"Length of Command List: {Convert.ToString(header.CommandFISLength)}");
+            FrConsole.WriteLine($"Physical Region Descriptor Table Length: {Convert.ToString(header.prdtl)}");
+            FrConsole.WriteLine($"Is ATAPI device ?: {Convert.ToString(IsATAPI)}");
+            ulong addr2;
+            if (dev.Is64Support)
+                addr2 = (ulong)clbbl[0x03] << 32 | clbbl[0x02];
+            else
+                addr2 = clbbl[0x02];
+
+            FrConsole.WriteLine($"CTB Addr: {Convert.ToString(clbbl[0x02])} (Original: {Convert.ToString(clbbl[0x02])}) -> {Convert.ToString(addr2)}");
+            MemoryBlock ctba = new((uint)addr2,0x100);
+            ctba[0] = Command;
+        }
+
+        private static void ReadFIS(int portno, AHCI_Dev dev) {
+            if (dev.mem.port[portno].CLB == 0) {
+                FrConsole.ForegroundColor = Color.OrangeRed;
+                FrConsole.WriteLine("The AHCI port you selected is not allocated!");
+                FrConsole.ResetColor();
+                return;
+            }
+            ulong addr = (ulong)dev.mem.port[portno].FBU << 32 | dev.mem.port[portno].FB;
+            MemoryBlock bl = new((uint)addr,0xFF);
             FrConsole.Write($"Some value: ");
             for (uint i=0;i<4;i++) {
-                FrConsole.Write($"{Convert.ToString(ctba[i])} ");
+                FrConsole.Write($"{Convert.ToString(bl[i])} ");
             }
-            FrConsole.WriteLine();
         }
-        // Let's go!!!!!
+
+        // Let's go! 🗣️🗣️🔥🔥🔥
         private static void Identify(int portno, AHCI_Dev dev) {
-            ReadCommandList(portno,dev); 
-            /*
-            FrConsole.WriteLine($"CI: {Convert.ToString(dev.mem.port[portno].CommandIssue)}");
+            FIS_REG_H2D fis = new()
+            {
+                fis_type = (byte)FIS_TYPE.FIS_TYPE_REG_H2D,
+                Command = 0xEC,
+                Devices = 0x80,
+                WriteCommand = 1
+            };
+    
+            uint Command= (uint)(fis.WriteCommand << 24 | fis.Command << 16 | fis.Devices << 8 | fis.fis_type);
+            FrConsole.WriteLine($"Identify Command: {Convert.ToString(Command)}");
+            WriteCommand2Device(portno,dev,Command);
             dev.mem.port[portno].block[0x38] = 1; // start command from FIS
             dev.mem.port[portno].CommandIssue = dev.mem.port[portno].block[0x38];
-            FrConsole.WriteLine($"CI: {Convert.ToString(dev.mem.port[portno].CommandIssue)}");*/
+            ReadCommandList(portno,dev);
         }
         public static List<int> port_impl;
  

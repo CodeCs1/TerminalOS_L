@@ -28,10 +28,7 @@ namespace TerminalOS_L.Driver.AHCI {
             [BitField(3)]
             public byte Reserved0;
         }
-        public struct Field3 {
-            [BitField(1)]
-            public byte Command;
-        }
+        public byte WriteCommand;
         public byte Command;
         public byte FeaturesL;
         public byte LBA0;
@@ -213,6 +210,29 @@ public byte Type;
         public uint[] Reserved1;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst =4)]
         public uint[] Vendor;
+    }
+
+    public struct HBA_CMD_TBL {
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
+        public byte[] cfis;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
+        public byte[] acmd;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 48)]
+        public byte[] Reserved;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst =1)]
+        public PDRT_Entry[] entry;
+    
+    }
+    public struct PDRT_Entry {
+        public uint dba;
+        public uint dbau;
+        public uint Reserved;
+        public uint ByteCount;
+        public uint Reserved2;
+        public uint Interrupt;
     }
 
 }
