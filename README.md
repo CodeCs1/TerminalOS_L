@@ -36,10 +36,14 @@ dotnet build
 - [ ] Windows-like path.
 - [ ] AHCI, NVMe[^3] Driver Support.
 - [ ] Floppy Disk Driver Support.
-- [ ] Virtual Machine Guest (VirtualBox, VMWare, HyperV, QEMU)
 - [ ] Doing some USB Implementation. (xHCI)
-- [ ] Some Plug-n-Play driver.
 - [ ] Some network support.
+
+### Driver that I should left it for future implement.
+- Some Graphics driver (no not some proprietary one)
+- Virtual Machine Guest (VirtualBox, VMWare, HyperV, QEMU).
+- Some Plug-n-Play driver.
+- Support PCIe.
 
 
 [^1]: I don't know if Cosmos C# is support MacOS

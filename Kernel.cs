@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using Cosmos.Core.Multiboot;
 using Cosmos.HAL;
 using Cosmos.HAL.Drivers.Audio;
@@ -79,6 +80,10 @@ namespace TerminalOS_L
             if (AHCI.IsAHCI()) {
                 Message.Send("Detected AHCI Driver.");
                 _ = new AHCI();
+            }
+            FrConsole.Clear();
+            foreach (var i in PCI.Devices) {
+                FrConsole.WriteLine($"{Convert.ToString(i.bus)}-{Convert.ToString(i.DeviceID)}-{Convert.ToString(i.function)} : {PCIDevice.DeviceClass.GetDeviceString(i)}");
             }
             FrConsole.WriteLine("\nThis is root from Terminal OS.");
             FrConsole.Write("root login: ");

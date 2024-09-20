@@ -167,8 +167,8 @@ namespace TerminalOS_L.Driver.AHCI {
                 FrConsole.ResetColor();
                 return;
             }
-            ulong addr = ((ulong)dev.mem.port[portno].CLBU << 32) | dev.mem.port[portno].CLB;
-            FrConsole.WriteLine($"Command and Status: {Convert.ToString(dev.mem.port[portno].Command)}");
+            ulong addr = (ulong)dev.mem.port[portno].CLBU << 32 | dev.mem.port[portno].CLB;
+            //FrConsole.WriteLine($"Command and Status: {Convert.ToString(dev.mem.port[portno].Command)}");
             FrConsole.WriteLine($"Start: {Convert.ToString(dev.mem.port[portno].Command & (1 << 0))}");
             MemoryBlock clbbl = new((uint)addr,0x21);
             FrConsole.WriteLine($"DW0 of Port {Convert.ToString(portno)}: {Convert.ToString(clbbl[0])}");
@@ -192,18 +192,22 @@ namespace TerminalOS_L.Driver.AHCI {
                 FrConsole.ResetColor();
                 return;
             }
-            FrConsole.WriteLine($"Length of Command List: {Convert.ToString(header.CommandFISLength)}");
-            FrConsole.WriteLine($"Physical Region Descriptor Table Length: {Convert.ToString(header.prdtl)}");
+            /*FrConsole.WriteLine($"Length of Command List: {Convert.ToString(header.CommandFISLength)}");
+            FrConsole.WriteLine($"Physical Region Descriptor Table Length: {Convert.ToString(header.prdtl)}");*/
             FrConsole.WriteLine($"Is ATAPI device ?: {Convert.ToString(IsATAPI)}");
+            FrConsole.WriteLine($"{Convert.ToString(clbbl[0x02])}");
             ulong addr2;
+            clbbl[0x02] &= ~((uint)1 << 1);
             if (dev.Is64Support)
-                addr2 = (ulong)clbbl[0x03] << 32 | clbbl[0x02];
+                addr2 = (ulong)clbbl[0x03] << 32 | clbbl[0x02] >> 7;
             else
                 addr2 = clbbl[0x02];
 
             FrConsole.WriteLine($"CTB Addr: {Convert.ToString(clbbl[0x02])} (Original: {Convert.ToString(clbbl[0x02])}) -> {Convert.ToString(addr2)}");
             MemoryBlock ctba = new((uint)addr2,0x100);
-            FrConsole.WriteLine($"Data Rev: {Convert.ToString(ctba[0x80])}");
+            for (uint i=0;i<header.CommandFISLength;i++) {
+                FrConsole.Write($"{Convert.ToString(ctba[i])} ");
+            }
         }
         private static void WriteCommand2Device(int portno, AHCI_Dev dev, uint Command) {
             if (dev.mem.port[portno].CLB == 0) {
@@ -236,16 +240,16 @@ namespace TerminalOS_L.Driver.AHCI {
                 FrConsole.ResetColor();
                 return;
             }
-            FrConsole.WriteLine($"Length of Command List: {Convert.ToString(header.CommandFISLength)}");
+            /*FrConsole.WriteLine($"Length of Command List: {Convert.ToString(header.CommandFISLength)}");
             FrConsole.WriteLine($"Physical Region Descriptor Table Length: {Convert.ToString(header.prdtl)}");
-            FrConsole.WriteLine($"Is ATAPI device ?: {Convert.ToString(IsATAPI)}");
+            FrConsole.WriteLine($"Is ATAPI device ?: {Convert.ToString(IsATAPI)}");*/
             ulong addr2;
             if (dev.Is64Support)
-                addr2 = (ulong)clbbl[0x03] << 32 | clbbl[0x02];
+                addr2 = (ulong)clbbl[0x03] << 32 | clbbl[0x02] >> 7;
             else
                 addr2 = clbbl[0x02];
 
-            FrConsole.WriteLine($"CTB Addr: {Convert.ToString(clbbl[0x02])} (Original: {Convert.ToString(clbbl[0x02])}) -> {Convert.ToString(addr2)}");
+            //FrConsole.WriteLine($"CTB Addr: {Convert.ToString(clbbl[0x02])} (Original: {Convert.ToString(clbbl[0x02])}) -> {Convert.ToString(addr2)}");
             MemoryBlock ctba = new((uint)addr2,0x100);
             ctba[0] = Command;
         }
@@ -283,6 +287,17 @@ namespace TerminalOS_L.Driver.AHCI {
             ReadCommandList(portno,dev);
         }
         public static List<int> port_impl;
+
+        private static int FreeCmdSlot(int portno, AHCI_Dev dev) {
+            uint slot = dev.mem.port[portno].SATAControl |dev.mem.port[portno].CommandIssue;
+            for (int i=0;i<64;i++) {
+                if ((slot&1)==0) {
+                    return i;
+                }
+                slot >>=1;
+            }
+            return -1;
+        }
  
         public AHCI() {
             pci.EnableDevice();
@@ -312,6 +327,7 @@ namespace TerminalOS_L.Driver.AHCI {
             ProbePort(dev.mem);
             foreach(int portno in port_impl) {
                 Identify(portno,dev);
+                FrConsole.WriteLine($"FreeCmdSlot at: {FreeCmdSlot(portno, dev)}");
             }
         }
     }
