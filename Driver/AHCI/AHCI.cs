@@ -199,7 +199,7 @@ namespace TerminalOS_L.Driver.AHCI {
             ulong addr2;
             clbbl[0x02] &= ~((uint)1 << 1);
             if (dev.Is64Support)
-                addr2 = (ulong)clbbl[0x03] << 32 | clbbl[0x02] >> 7;
+                addr2 = (ulong)clbbl[0x03] << 32 | clbbl[0x02];
             else
                 addr2 = clbbl[0x02];
 
@@ -207,6 +207,9 @@ namespace TerminalOS_L.Driver.AHCI {
             MemoryBlock ctba = new((uint)addr2,0x100);
             for (uint i=0;i<header.CommandFISLength;i++) {
                 FrConsole.Write($"{Convert.ToString(ctba[i])} ");
+            }
+            for (uint i=0x80;i<0x100;i++) {
+                FrConsole.WriteLine($"Vaule from 0x80 to 0x100: {Convert.ToString(ctba[i])}");
             }
         }
         private static void WriteCommand2Device(int portno, AHCI_Dev dev, uint Command) {
@@ -240,12 +243,9 @@ namespace TerminalOS_L.Driver.AHCI {
                 FrConsole.ResetColor();
                 return;
             }
-            /*FrConsole.WriteLine($"Length of Command List: {Convert.ToString(header.CommandFISLength)}");
-            FrConsole.WriteLine($"Physical Region Descriptor Table Length: {Convert.ToString(header.prdtl)}");
-            FrConsole.WriteLine($"Is ATAPI device ?: {Convert.ToString(IsATAPI)}");*/
             ulong addr2;
             if (dev.Is64Support)
-                addr2 = (ulong)clbbl[0x03] << 32 | clbbl[0x02] >> 7;
+                addr2 = (ulong)clbbl[0x03] << 32 | clbbl[0x02];
             else
                 addr2 = clbbl[0x02];
 
@@ -305,6 +305,7 @@ namespace TerminalOS_L.Driver.AHCI {
             // Built-in AHCI just...crash.
             //Cosmos.HAL.BlockDevice.AHCI _ = new (pci);
             var memblock = new MemoryBlock(pci.ReadRegister32(0x24),0x100);
+            port_impl=new List<int>();
             dev=new() {
                 Bar = pci.ReadRegister32(0x24) , // Get BAR5 Register
                 mem = new() {
@@ -325,9 +326,9 @@ namespace TerminalOS_L.Driver.AHCI {
             dev.mem.PortImpl = GetAHCIRegister(memblock,0x0C);
             FrConsole.WriteLine($"Port Implemented: {Convert.ToString(dev.mem.PortImpl)}");
             ProbePort(dev.mem);
+            FrConsole.WriteLine("Identifing...");
             foreach(int portno in port_impl) {
                 Identify(portno,dev);
-                FrConsole.WriteLine($"FreeCmdSlot at: {FreeCmdSlot(portno, dev)}");
             }
         }
     }

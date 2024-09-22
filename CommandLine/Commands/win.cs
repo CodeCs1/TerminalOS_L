@@ -62,7 +62,7 @@ namespace TerminalOS_L {
         public override string Execute(string[] args)
         {
             if (!Kernel.SVGASupport) {
-                canvas = new(new Mode(800, 6000, ColorDepth.ColorDepth32));
+                canvas = new(new Mode(800, 600, ColorDepth.ColorDepth32));
                 /*Init the cursor*/
                 canvas.Clear(5635925);
                 
@@ -74,10 +74,6 @@ namespace TerminalOS_L {
                 while(true) {
                     Point cur = new((int)Sys.MouseManager.X, (int)Sys.MouseManager.Y);
                     canvas.DrawPoint(Color.Black, cur.X, cur.Y);
-
-                    MSExe exe = new(canvas,"MS-DOS Executable", 800,600);
-                    exe.Init();
-
                     DrawCursor(Sys.MouseManager.X,Sys.MouseManager.Y);
                     canvas.Display();
                     canvas.Clear(5635925);

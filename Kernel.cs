@@ -81,10 +81,6 @@ namespace TerminalOS_L
                 Message.Send("Detected AHCI Driver.");
                 _ = new AHCI();
             }
-            FrConsole.Clear();
-            foreach (var i in PCI.Devices) {
-                FrConsole.WriteLine($"{Convert.ToString(i.bus)}-{Convert.ToString(i.DeviceID)}-{Convert.ToString(i.function)} : {PCIDevice.DeviceClass.GetDeviceString(i)}");
-            }
             FrConsole.WriteLine("\nThis is root from Terminal OS.");
             FrConsole.Write("root login: ");
             Username = FrConsole.ReadLine();
