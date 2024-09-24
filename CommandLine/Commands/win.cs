@@ -72,10 +72,8 @@ namespace TerminalOS_L {
                 Sys.MouseManager.Y = 600/2;
 
                 while(true) {
-                    Point cur = new((int)Sys.MouseManager.X, (int)Sys.MouseManager.Y);
-                    canvas.DrawPoint(Color.Black, cur.X, cur.Y);
+                    MSExe exe=new(canvas,"MSExecutable", 100,100);
                     DrawCursor(Sys.MouseManager.X,Sys.MouseManager.Y);
-                    MSExe exe=new(canvas,"MSExecutable", 100,100,50,50);
                     exe.Init();
                     canvas.Display();
                     canvas.Clear(5635925);

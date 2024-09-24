@@ -55,7 +55,6 @@ namespace TerminalOS_L
 
         public static bool SVGASupport;
         private static string Username;
-        private static string Password;
         public static bool UseAC97;
 
         protected override void BeforeRun()

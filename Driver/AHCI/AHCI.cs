@@ -270,7 +270,8 @@ namespace TerminalOS_L.Driver.AHCI {
             dev.mem.port[portno].block[0x10] = dev.mem.port[portno].InterruptStatus;
             dev.mem.port[portno].header.CommandFISLength=5;
             dev.mem.port[portno].header.Write=0;
-            FrConsole.WriteLine($"Address: {Convert.ToString(new IntPtr(dev.mem.port[portno].CLB))}");
+            
+            
         }
 
         // Let's go! 🗣️🗣️🔥🔥🔥
