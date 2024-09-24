@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
 using IL2CPU.API.Attribs;
-using TerminalOS_L.System;
+using TerminalOS_L.TSystem;
 using XSharp;
 using XSharp.Assembler;
 using XSharp.Assembler.x86;

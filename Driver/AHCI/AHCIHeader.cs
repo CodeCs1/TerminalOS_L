@@ -188,6 +188,7 @@ public byte Type;
 
     [StructLayout(LayoutKind.Sequential)]
     public struct HBA_PORT {
+        public HBA_CMD_HEADER header;
         public MemoryBlock block;
         public uint CLB;
         public uint CLBU;

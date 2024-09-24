@@ -4,9 +4,6 @@ using System.Text;
 using TerminalOS_L.Misc;
 using TerminalOS_L.Driver.NVMe;
 using TerminalOS_L.FrameBuffer;
-using TerminalOS_L.Driver.VBox;
-using TerminalOS_L.System;
-using Cosmos.Core.MemoryGroup;
 
 namespace TerminalOS_L {
             //MemoryStream memtest2 = new(a);
@@ -16,6 +13,7 @@ namespace TerminalOS_L {
             [BitField(5)]
             public byte test1;
         }
+
         public override string Execute(string[] args)
         {
             FrConsole.WriteLine("All test case will be placed in this test command");

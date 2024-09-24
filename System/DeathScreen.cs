@@ -4,7 +4,7 @@ using System.Threading;
 using Cosmos.System;
 using Cosmos.System.Graphics;
 using Cosmos.System.Graphics.Fonts;
-namespace TerminalOS_L.System {
+namespace TerminalOS_L.TSystem {
     public class DeathScreen {
         private readonly string message;
         public bool WinXP = false;

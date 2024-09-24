@@ -1,5 +1,6 @@
 using System;
 using Cosmos.System.Graphics;
+using TerminalOS_L.FrameBuffer;
 using TerminalOS_L.Windows;
 
 namespace TerminalOS_L {
@@ -10,9 +11,15 @@ namespace TerminalOS_L {
             
         }
 
+
+        private static void Click1() {
+            Cosmos.System.Power.Reboot();
+        }
+
         public override void Update()
         {
-            
+            WMButton b=new("Test1",4,5,30,30);
+            b.click?.Invoke();
         }
     }
 }

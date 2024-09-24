@@ -173,7 +173,8 @@ namespace TerminalOS_L.Driver.AHCI {
             MemoryBlock clbbl = new((uint)addr,0x21);
             FrConsole.WriteLine($"DW0 of Port {Convert.ToString(portno)}: {Convert.ToString(clbbl[0])}");
             uint dw0 = clbbl[0];
-            HBA_CMD_HEADER header=new() {
+            dev.mem.port[portno].header = new()
+            {
                 CommandFISLength = (byte)(dw0 & 0xF),
                 prdtl = (ushort)(dw0 >> 16),
                 ATAPI = (byte)(dw0 & (1 << 5)),
@@ -182,8 +183,10 @@ namespace TerminalOS_L.Driver.AHCI {
                 Reset = (byte)(dw0 & (1 << 8)),
                 BIST = (byte)(dw0 & (1 << 9)),
                 ClearBusy = (byte)(dw0 & (1 << 10)),
-                PortMultiplier = (byte)((dw0 >> 12)&0xF)
+                PortMultiplier = (byte)((dw0 >> 12) & 0xF)
             };
+
+            HBA_CMD_HEADER header = dev.mem.port[portno].header;
 
             bool IsATAPI = header.ATAPI!=0;
             if (header.CommandFISLength == 0 || header.CommandFISLength == 1) {
@@ -208,9 +211,6 @@ namespace TerminalOS_L.Driver.AHCI {
             for (uint i=0;i<header.CommandFISLength;i++) {
                 FrConsole.Write($"{Convert.ToString(ctba[i])} ");
             }
-            for (uint i=0x80;i<0x100;i++) {
-                FrConsole.WriteLine($"Vaule from 0x80 to 0x100: {Convert.ToString(ctba[i])}");
-            }
         }
         private static void WriteCommand2Device(int portno, AHCI_Dev dev, uint Command) {
             if (dev.mem.port[portno].CLB == 0) {
@@ -220,8 +220,6 @@ namespace TerminalOS_L.Driver.AHCI {
                 return;
             }
             ulong addr = ((ulong)dev.mem.port[portno].CLBU << 32) | dev.mem.port[portno].CLB;
-            FrConsole.WriteLine($"Command and Status: {Convert.ToString(dev.mem.port[portno].Command)}");
-            FrConsole.WriteLine($"Start: {Convert.ToString(dev.mem.port[portno].Command & (1 << 0))}");
             MemoryBlock clbbl = new((uint)addr,0x21);
             uint dw0 = clbbl[0];
             HBA_CMD_HEADER header=new() {
@@ -235,8 +233,6 @@ namespace TerminalOS_L.Driver.AHCI {
                 ClearBusy = (byte)(dw0 & (1 << 10)),
                 PortMultiplier = (byte)((dw0 >> 12)&0xF)
             };
-
-            bool IsATAPI = header.ATAPI!=0;
             if (header.CommandFISLength == 0 || header.CommandFISLength == 1) {
                 FrConsole.ForegroundColor = Color.OrangeRed;
                 FrConsole.WriteLine("Illegal Command List Length!");
@@ -245,7 +241,7 @@ namespace TerminalOS_L.Driver.AHCI {
             }
             ulong addr2;
             if (dev.Is64Support)
-                addr2 = (ulong)clbbl[0x03] << 32 | clbbl[0x02];
+                addr2 = (ulong)clbbl[0x03] << 32 | clbbl[0x02] >> 7;
             else
                 addr2 = clbbl[0x02];
 
@@ -268,6 +264,14 @@ namespace TerminalOS_L.Driver.AHCI {
                 FrConsole.Write($"{Convert.ToString(bl[i])} ");
             }
         }
+        // Let's fcking go!!! 🗣️🗣️🔥🔥🔥
+        private static void Read28(int portno,AHCI_Dev dev) {
+            dev.mem.port[portno].InterruptStatus = 0xFFFFFFFF;
+            dev.mem.port[portno].block[0x10] = dev.mem.port[portno].InterruptStatus;
+            dev.mem.port[portno].header.CommandFISLength=5;
+            dev.mem.port[portno].header.Write=0;
+            FrConsole.WriteLine($"Address: {Convert.ToString(new IntPtr(dev.mem.port[portno].CLB))}");
+        }
 
         // Let's go! 🗣️🗣️🔥🔥🔥
         private static void Identify(int portno, AHCI_Dev dev) {
@@ -282,7 +286,7 @@ namespace TerminalOS_L.Driver.AHCI {
             uint Command= (uint)(fis.WriteCommand << 24 | fis.Command << 16 | fis.Devices << 8 | fis.fis_type);
             FrConsole.WriteLine($"Identify Command: {Convert.ToString(Command)}");
             WriteCommand2Device(portno,dev,Command);
-            dev.mem.port[portno].block[0x38] = 1; // start command from FIS
+            dev.mem.port[portno].block[0x38] = 1 ; // start command from FIS
             dev.mem.port[portno].CommandIssue = dev.mem.port[portno].block[0x38];
             ReadCommandList(portno,dev);
         }
@@ -326,10 +330,26 @@ namespace TerminalOS_L.Driver.AHCI {
             dev.mem.PortImpl = GetAHCIRegister(memblock,0x0C);
             FrConsole.WriteLine($"Port Implemented: {Convert.ToString(dev.mem.PortImpl)}");
             ProbePort(dev.mem);
-            FrConsole.WriteLine("Identifing...");
-            foreach(int portno in port_impl) {
-                Identify(portno,dev);
+            foreach(int i in port_impl) {
+                //Clear the ST and FRE
+                BitPort.SetBit(ref dev.mem.port[i].Command,0,0);
+                BitPort.SetBit(ref dev.mem.port[i].Command,8,0);
+                dev.mem.port[i].block[0x38] = dev.mem.port[i].Command;
+                while(((dev.mem.port[i].Command >>14) & 1)!=0 && ((dev.mem.port[i].Command >>15) & 1)!=0) {
+                    BitPort.SetBit(ref dev.mem.port[i].Command,14,0);
+                    BitPort.SetBit(ref dev.mem.port[i].Command,15,0);
+                    dev.mem.port[i].block[0x38] = dev.mem.port[i].Command;
+                }
+
+                ReadCommandList(i,dev);
+
+                //Set the ST and FRE
+                BitPort.SetBit(ref dev.mem.port[i].Command,0,1);
+                BitPort.SetBit(ref dev.mem.port[i].Command,8,1);
+                
             }
+
+            Read28(0,dev);
         }
     }
 }

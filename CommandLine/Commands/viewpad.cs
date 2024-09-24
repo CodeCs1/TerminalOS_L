@@ -1,7 +1,7 @@
 using System;
 using TerminalOS_L.FrameBuffer;
 using TerminalOS_L.Misc;
-using TerminalOS_L.System;
+using TerminalOS_L.TSystem;
 
 //Ah yes, the return of viewpad program.
 namespace TerminalOS_L.BuiltinProgram  {

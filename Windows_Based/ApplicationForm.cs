@@ -9,7 +9,7 @@ namespace TerminalOS_L.Windows {
     public class ApplicationForm {
         public int x,y,width,height;
         public string title;
-        public Canvas can;
+        public static Canvas can;
         public ApplicationForm(Canvas Root,string title,
             int width, int height, int x=0,int y=0) {
                 this.x=x;
@@ -19,6 +19,36 @@ namespace TerminalOS_L.Windows {
                 this.title=title;
                 can = Root;
             }
+
+        public class EventClick {
+            public delegate void Click();
+        }
+
+        public class WMButton : Component {
+            public int x,y,w,h;
+            public string text;
+            public WMButton(string text, int x, int y, int w, int h) {
+                this.x=x;
+                this.y=y;
+                this.w=w;
+                this.h=h;
+                this.text = text;
+            }
+            public override void Draw()
+            {
+                can.DrawRectangle(Color.Black,x,y,w,h);
+            }
+
+            public EventClick.Click click;
+        }
+
+        ///<summary>
+        /// Component for Application Form.
+        ///</summary>
+
+        public class Component {
+            public virtual void Draw() {}
+        }
 
         public void Init() {
             /*Window*/
@@ -33,6 +63,7 @@ namespace TerminalOS_L.Windows {
             can.DrawString(title,PCScreenFont.Default,Color.White,TextLocation,y);
             /*Line*/ 
             can.DrawLine(Color.Black,x,y+20,width,20);
+            Update();
         }
 
         public virtual void Update() {}
