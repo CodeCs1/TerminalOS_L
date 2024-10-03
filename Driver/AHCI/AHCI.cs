@@ -128,13 +128,18 @@ namespace TerminalOS_L.Driver.AHCI {
 
         private static void StartCommand(HBA_PORT port) {
             while((port.Command & 0x8000) != 0) {
-                FrConsole.Write(".");
                 port.Command = PortBlock[0x18];
             }
             port.Command |= 0x0010;
             PortBlock[0x18] = port.Command;
 
             port.Command |= 0x0001;
+            PortBlock[0x18] = port.Command;
+        }
+
+        private static void StopCommand(HBA_PORT port) {
+            port.Command &= ~(uint)0x0001;
+            port.Command &= ~(uint)0x0010;
             PortBlock[0x18] = port.Command;
         }
 
@@ -168,7 +173,6 @@ namespace TerminalOS_L.Driver.AHCI {
                 return;
             }
             ulong addr = (ulong)dev.mem.port[portno].CLBU << 32 | dev.mem.port[portno].CLB;
-            //FrConsole.WriteLine($"Command and Status: {Convert.ToString(dev.mem.port[portno].Command)}");
             FrConsole.WriteLine($"Start: {Convert.ToString(dev.mem.port[portno].Command & (1 << 0))}");
             MemoryBlock clbbl = new((uint)addr,0x21);
             FrConsole.WriteLine($"DW0 of Port {Convert.ToString(portno)}: {Convert.ToString(clbbl[0])}");
@@ -200,7 +204,6 @@ namespace TerminalOS_L.Driver.AHCI {
             FrConsole.WriteLine($"Is ATAPI device ?: {Convert.ToString(IsATAPI)}");
             FrConsole.WriteLine($"{Convert.ToString(clbbl[0x02])}");
             ulong addr2;
-            clbbl[0x02] &= ~((uint)1 << 1);
             if (dev.Is64Support)
                 addr2 = (ulong)clbbl[0x03] << 32 | clbbl[0x02];
             else
@@ -208,8 +211,15 @@ namespace TerminalOS_L.Driver.AHCI {
 
             FrConsole.WriteLine($"CTB Addr: {Convert.ToString(clbbl[0x02])} (Original: {Convert.ToString(clbbl[0x02])}) -> {Convert.ToString(addr2)}");
             MemoryBlock ctba = new((uint)addr2,0x100);
-            for (uint i=0;i<header.CommandFISLength;i++) {
-                FrConsole.Write($"{Convert.ToString(ctba[i])} ");
+            ulong addr3;
+            if (dev.Is64Support) {
+                addr3 = (ulong)ctba[0x1e] << 32 | ctba[0x1D];
+            } else {
+                addr3 = ctba[0x1d];
+            }
+            MemoryBlock data = new((uint)addr3,0x100);
+            for (uint i=0;i<0x10;i++) {
+                FrConsole.Write($"{Convert.ToString(data[i])} ");
             }
         }
         private static void WriteCommand2Device(int portno, AHCI_Dev dev, uint Command) {
@@ -241,7 +251,7 @@ namespace TerminalOS_L.Driver.AHCI {
             }
             ulong addr2;
             if (dev.Is64Support)
-                addr2 = (ulong)clbbl[0x03] << 32 | clbbl[0x02] >> 7;
+                addr2 = (ulong)clbbl[0x03] << 32 | clbbl[0x02];
             else
                 addr2 = clbbl[0x02];
 
@@ -303,6 +313,25 @@ namespace TerminalOS_L.Driver.AHCI {
             }
             return -1;
         }
+
+        void port_Rebase(AHCI_Dev d, int portno) {
+            StopCommand(d.mem.port[portno]);
+            d.mem.port[portno].CLB = (uint)(d.Bar + (portno << 10));
+            d.mem.port[portno].CLBU = 0;
+            d.mem.port[portno].block[0]=d.mem.port[portno].CLB;
+            d.mem.port[portno].block[1]=d.mem.port[portno].CLBU;
+            HBA_CMD_HEADER[] header=new HBA_CMD_HEADER[32];
+            MemoryBlock bl=new(d.mem.port[portno].CLB, 256);
+            for (int i=0;i<32;i++) {
+                header[i].prdtl=8;
+                header[i].ctba = (uint)(d.Bar + (40 << 10) + (portno << 13) + (i << 8));
+                header[i].ctbau = 0;
+                bl[0] = (uint)(header[i].prdtl << 16);
+                bl[2]=header[i].ctba;
+                bl[3]=header[i].ctbau;
+            }
+            StartCommand(d.mem.port[portno]);
+        }
  
         public AHCI() {
             pci.EnableDevice();
@@ -332,25 +361,8 @@ namespace TerminalOS_L.Driver.AHCI {
             FrConsole.WriteLine($"Port Implemented: {Convert.ToString(dev.mem.PortImpl)}");
             ProbePort(dev.mem);
             foreach(int i in port_impl) {
-                //Clear the ST and FRE
-                BitPort.SetBit(ref dev.mem.port[i].Command,0,0);
-                BitPort.SetBit(ref dev.mem.port[i].Command,8,0);
-                dev.mem.port[i].block[0x38] = dev.mem.port[i].Command;
-                while(((dev.mem.port[i].Command >>14) & 1)!=0 && ((dev.mem.port[i].Command >>15) & 1)!=0) {
-                    BitPort.SetBit(ref dev.mem.port[i].Command,14,0);
-                    BitPort.SetBit(ref dev.mem.port[i].Command,15,0);
-                    dev.mem.port[i].block[0x38] = dev.mem.port[i].Command;
-                }
-
-                ReadCommandList(i,dev);
-
-                //Set the ST and FRE
-                BitPort.SetBit(ref dev.mem.port[i].Command,0,1);
-                BitPort.SetBit(ref dev.mem.port[i].Command,8,1);
-                
+                Identify(0,dev);
             }
-
-            Read28(0,dev);
         }
     }
 }

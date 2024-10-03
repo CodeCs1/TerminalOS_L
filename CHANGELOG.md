@@ -37,3 +37,13 @@ All the changes of TerminalOS_L will be written here.
 
 ## In development
 - NVMe, xHCI driver.
+
+# [1.0.2 DEVELOPMENT] - 2024-03-10
+## Updated.
+- Add IHDA Driver.
+
+## Fixed.
+- Nothing is fixed yet.
+
+## In development.
+- AHCI, IHDA
