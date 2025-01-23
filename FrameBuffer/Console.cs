@@ -65,9 +65,11 @@ namespace TerminalOS_L.FrameBuffer {
                         }
                         break;
                     default:
-                        WriteChr(ev.KeyChar);
-                        builder.Insert(Xread,ev.KeyChar);
-                        Xread++;
+                        if (ev.KeyChar >= 0x20 && ev.KeyChar <= 0x7F) {
+                            WriteChr(ev.KeyChar);
+                            builder.Insert(Xread,ev.KeyChar);
+                            Xread++;
+                        }
                         break;
                 }
                 ev = KeyboardManager.ReadKey();

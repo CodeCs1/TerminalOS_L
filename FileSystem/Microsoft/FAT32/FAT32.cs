@@ -2,14 +2,30 @@ using System;
 using System.IO;
 using System.Text;
 using TerminalOS_L.Driver;
+using TerminalOS_L.FrameBuffer;
 
 namespace TerminalOS_L.FileSystemR.Microsoft.FAT32
 {
-    public class FAT32 {
+    public class FAT32 : VFS {
         public BootRecord br;
-        public FAT32(ATA ata, int LBA_Start) {
+        public override uint LBA_Start { get => base.LBA_Start; set => base.LBA_Start = value; }
+        public ATA ata;
+
+        public override ATA ATA => ata;
+        public override string Type => "EXT2";
+        public FAT32(ATA ata) : base(ata) {
+            this.ata = ata;
+        }
+        //http://wiki.osdev.org/User:Requimrar/FAT32#Helper_Functions
+        private uint Cluster2LBA(uint cluster) {
+            return (uint)(LBA_Start+br.ReservedSectors+(br.NumberofFat*br.SectorsPerFAT)+
+            cluster+br.NumberPerCluster-(2*br.NumberPerCluster));
+        }
+
+        public override int Impl()
+        {
             byte[] BPB = new byte[512];
-            ata.Read28(LBA_Start,512,ref BPB);
+            ata.Read28((int)LBA_Start,512,ref BPB);
             using var r = new BinaryReader(new MemoryStream(BPB));
             br.ShortJmp = r.ReadBytes(3);
             br.OEM = r.ReadBytes(8);
@@ -39,19 +55,8 @@ namespace TerminalOS_L.FileSystemR.Microsoft.FAT32
             br.VolumeLabel = r.ReadBytes(11);
             br.SysIdentifiString = r.ReadBytes(8);
 
-            int Root_Sectors = LBA_Start+br.ReservedSectors;
-            uint FatSz = br.SectorsPerFAT;
-            uint Data_Start = (uint)(Root_Sectors +FatSz*br.NumberofFat);
-            uint Root_Start = (uint)(Data_Start +br.NumberofSectors*(br.NumberofRoot-2));
-            Console.WriteLine("Root Start: "+Root_Start);
-            /*byte[] Root_Dir = new byte[512];
-            ata.Read28(Root_Sectors,512,ref Root_Dir);
-            Kernel.PrintByteArray(Root_Dir);*/
-        }
-        //This function should be resemble to Cosmos File System.
-        public void ListAll() {
             var builder = new StringBuilder();
-            Console.WriteLine("-------File System-------");
+            FrConsole.WriteLine("-------File System-------");
             builder.AppendFormat("Bytes Per Sector: {0}\n",br.BytePerSectors);
             builder.AppendFormat("Number of Sectors: {0}\n",br.NumberofSectors);
             builder.AppendFormat("Reserved Sectors: {0}\n",br.ReservedSectors);
@@ -61,7 +66,14 @@ namespace TerminalOS_L.FileSystemR.Microsoft.FAT32
             builder.AppendFormat("Media: {0}\n",br.Media);
             builder.AppendFormat("Sectors Per Track: {0}\n",br.SectorsPerTrack);
             builder.AppendFormat("Number of Head: {0}\n",br.NumberofHead);
-            Console.WriteLine(builder.ToString());
+            FrConsole.WriteLine(builder.ToString());
+
+            FrConsole.WriteLine("Getting Cluster 2 [Root]");
+            byte[] b = new byte[512];
+            FrConsole.WriteLine(Convert.ToString(Cluster2LBA(2)));
+            ata.Read28((int)Cluster2LBA(2), 512, ref b);
+            Kernel.PrintByteArray(b);
+            return 0;
         }
     }
 }

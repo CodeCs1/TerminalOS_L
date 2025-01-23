@@ -280,13 +280,16 @@ namespace TerminalOS_L.FileSystemR.Linux {
             return inode;
         }
 
-        public  Inode Findfolder(string path) {
+        private uint ChangePathError=0;
+
+        public bool Findfolder(string path) {
             if (!path.StartsWith("/")) {
                 path = Getroot.Path + path;
             }
             string[] spl = path.Split('/');
             Inode inode = GetInodeInfo(2,bgd,esb,spb); // Get root Inode
             DirectoryEntry[] en = GetDirectoryEntry(inode, esb, spb);
+            ChangePathError=0;
             foreach(string path_ in spl) {
                 if (path_ == string.Empty) continue;
                 for (int i=0;i<en.Length;i++) {
@@ -296,13 +299,14 @@ namespace TerminalOS_L.FileSystemR.Linux {
                             en=GetDirectoryEntry(inode, esb, spb);
                             break;
                         } else {
-                            FrConsole.WriteLine($"File {path[path.LastIndexOf('/')..]} is not a folder.");
-                            return inode;
+                            FrConsole.WriteLine($"File {path[path.LastIndexOf('/')..]} is not a folder. [Error: 0x0C]");
+                            ChangePathError=0x0C;
+                            return false;
                         }
                     }
                 }
             }
-            return inode;
+            return true;
         }
 
 
@@ -312,6 +316,9 @@ namespace TerminalOS_L.FileSystemR.Linux {
                 path = path.Insert(0,Getroot.Path);
             }
             Findfolder(path);
+            if (ChangePathError != 0) {
+                return;
+            }
             Getroot.Path = path;
         }
         private DirectoryEntry[] GetDirectoryEntry(Inode inode,ExtendedSuperBlock esb,

@@ -12,16 +12,20 @@ namespace TerminalOS_L {
         }
         public override string Execute(string[] args)
         {
-            FrConsole.WriteLine("Disk Name:");
+            FrConsole.WriteLine("Name");
             foreach(string name in ATA.DeviceName) {
-                FrConsole.WriteLine($"/dev/{name}");
+                FrConsole.WriteLine($"{name}");
                 if (GPT.TotalPartition != -1) {
                     for (int i=1;i<=GPT.TotalPartition;i++) {
-                        FrConsole.WriteLine($" +- /dev/{name}{i}");
+                        if (i == GPT.TotalPartition) {
+                            FrConsole.WriteLine($" `- {name}{i}");
+                        } else {
+                            FrConsole.WriteLine($" |- {name}{i}");
+                        }
                     }
                 } else {
                     for (int i=1;i<=MBR.TotalPartition;i++) {
-                        FrConsole.WriteLine($" +- /dev/{name}{i}");
+                        FrConsole.WriteLine($" +- {name}{i}");
                     }
                 }
             }

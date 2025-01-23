@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using TerminalOS_L.Driver;
 using TerminalOS_L.FileSystemR;
 using TerminalOS_L.FileSystemR.Linux;
 using TerminalOS_L.FileSystemR.Microsoft.FAT32;
+using TerminalOS_L.FrameBuffer;
 
 namespace TerminalOS_L.Misc {
 
@@ -15,7 +17,8 @@ namespace TerminalOS_L.Misc {
         public static int RegisteredVFSIndex=0;
         public static List<VFS> RegisteredVFS = new()
         {
-            new Ext2(ata)
+            new Ext2(ata),
+            new FAT32(ata)
         };
         public override string Execute(string[] args) {
             // getroot /dev/sda<partition number>
@@ -31,6 +34,7 @@ namespace TerminalOS_L.Misc {
                 Message.Send_Error("ATA drive need to be mount first!");
                 return "";
             }
+            
             string dev = args[0][5..];
             if (dev.StartsWith("sd")) {
                 string partition_number = dev[3..];
@@ -46,12 +50,17 @@ namespace TerminalOS_L.Misc {
                     initLBA = MBR.mbr_.Partitions[partition-1].LBAStart;
                 }
                 RegisteredVFSIndex=0;
+                int NonRegistered = 0;
                 foreach(VFS vfs in RegisteredVFS) {
                     vfs.LBA_Start = initLBA;
-                    if (vfs.Impl() != -1) {
-                        break;
-                    }
+                    int error=vfs.Impl();
                     RegisteredVFSIndex++;
+                    if (error == -1) NonRegistered++;
+                    else break;
+                }
+                if (NonRegistered == RegisteredVFSIndex) {
+                    Message.Send_Error("No such file system. [Error: 0x01]");
+                    return "Wrong File System or The file system isn't implemented";
                 }
                 Path = "/";
 

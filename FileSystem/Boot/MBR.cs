@@ -60,6 +60,7 @@ namespace TerminalOS_L.FileSystemR {
                 Message.Send("Detected MBR");
             } else {
                 Message.Send_Error("Invaild MBR Signature!");
+                return;
             }
             TotalPartition = count;
         }

@@ -41,7 +41,7 @@ namespace TerminalOS_L {
                 _ = new MBR(ata);
             }
             Getroot.ata = ata;
-            return base.Execute(args);
+            return "OK";
         }
     }
 }

@@ -9,6 +9,9 @@ namespace TerminalOS_L.FileSystemR.Microsoft.FAT32 {
         [MarshalAs(UnmanagedType.ByValArray,SizeConst =8)]
         public byte[] OEM;
         public UInt16 BytePerSectors;
+        /// <summary>
+        /// Sector Per Cluster
+        /// </summary>
         public byte NumberPerCluster;
         public ushort ReservedSectors;
         public byte NumberofFat;

@@ -2,12 +2,10 @@
 using System.Text;
 using Cosmos.HAL;
 using Cosmos.HAL.Drivers.Audio;
-using TerminalOS_L.CosmosPort;
+using TerminalOS_L.Driver;
 using TerminalOS_L.Driver.AHCI;
-using TerminalOS_L.Driver.IHDA;
 using TerminalOS_L.FrameBuffer;
 using TerminalOS_L.Misc;
-using TerminalOS_L.TSystem;
 using Sys = Cosmos.System;
 
 namespace TerminalOS_L
@@ -61,6 +59,8 @@ namespace TerminalOS_L
         private static string Username;
         public static bool UseAC97;
 
+        private static bool[] ATADrives = {false,false,false,false};
+
         protected override void BeforeRun()
         {
             _ = new FrConsole();
@@ -83,14 +83,13 @@ namespace TerminalOS_L
                 Message.Send("Detected AHCI Driver.");
                 _ = new AHCI();
             }
-            if (IHDA.IsIHDA()) {
-                Message.Send("Detected IHDA Driver.");
-                _ = new IHDA();
-            }
-            FrConsole.WriteLine("\nThis is root from Terminal OS.");
-            FrConsole.Write("root login: ");
-            Username = FrConsole.ReadLine();
-            FrConsole.WriteLine();
+            cm.Input("mount IDE_0");
+            do {
+                FrConsole.WriteLine("\nThis is root from Terminal OS.");
+                FrConsole.Write("root login: ");
+                Username = FrConsole.ReadLine();
+                FrConsole.WriteLine();
+            }while(string.IsNullOrEmpty(Username));
         }
         
         protected override void Run()

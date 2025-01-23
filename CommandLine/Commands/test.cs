@@ -64,8 +64,7 @@ namespace TerminalOS_L {
 
             FrConsole.WriteLine("Testing Unicode #1: こんにちは <- It should be: Konnichiha");
             FrConsole.WriteLine("Testing Unicode #2: xin chào, đây là một câu ví dụ. <- It should be: xin chao, day la mot cau vi du.");
-
-            
+            FrConsole.WriteLine("Testing Unicode #3: Идея <- It should be: eeDYEya (idea)");
 
             Message.Send("If you gone this far, then congrat!");
 
