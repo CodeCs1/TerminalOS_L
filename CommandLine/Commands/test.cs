@@ -53,14 +53,13 @@ namespace TerminalOS_L {
                 byte[] b = new byte[] {
                     0x00,0x06,0x10,0x23
                 };
+                byte[] b1 = new byte[4];
                 Getroot.ata.Write28(0,4,ref b);
-                Getroot.ata.Read28(0,4,ref b);
+                Getroot.ata.Read28(0,4,ref b1);
                 Kernel.PrintByteArray(b);
+                Kernel.PrintByteArray(b1);
             }
             _ = new NVMe();
-            //NVMe.DisableDevice();
-            /*FrameBuffer.FrConsole fr =new();
-            FrameBuffer.FrConsole.WriteLine("Done!");*/
 
             FrConsole.WriteLine("Testing Unicode #1: こんにちは <- It should be: Konnichiha");
             FrConsole.WriteLine("Testing Unicode #2: xin chào, đây là một câu ví dụ. <- It should be: xin chao, day la mot cau vi du.");

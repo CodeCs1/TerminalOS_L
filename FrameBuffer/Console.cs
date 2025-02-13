@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Text;
+using Cosmos.Core.Memory;
 using Cosmos.HAL.Drivers.Audio;
 using Cosmos.System;
 using Cosmos.System.Graphics;
@@ -87,10 +88,13 @@ namespace TerminalOS_L.FrameBuffer {
                 X=0;
                 Y+=16;
             }
-            if (Y >= Height-16) {
-                //TODO: Scroll up
+            //Scrolling in the simplest way.
+            if (Y > Height-16) {
+                Bitmap b = consoleCanvas.GetImage(0,0,(int)Width,(int)Height);
                 Clear();
-                X=Y=0;
+                consoleCanvas.DrawImage(b,0, -16);
+                Y=(int)Height-16;
+                Heap.Collect();
             }
             switch(c) {
                 case '\n':
@@ -110,9 +114,15 @@ namespace TerminalOS_L.FrameBuffer {
                     }
                     break;
                 default:
-                    consoleCanvas.DrawChar(' ',f,BackgroundColor,X,Y);
-                    consoleCanvas.DrawChar(c,f,ForegroundColor,X,Y);
-                    X+=8;
+                    if (c > 0 && c <= 0xff) {
+                        consoleCanvas.DrawChar(' ',f,BackgroundColor,X,Y);
+                        consoleCanvas.DrawChar(c,f,ForegroundColor,X,Y);
+                        X+=8;
+                    } else {
+                        consoleCanvas.DrawChar(' ',f,BackgroundColor,X,Y);
+                        consoleCanvas.DrawChar((char)0xdb,f,ForegroundColor,X,Y);
+                        X+=8;
+                    }
                     break;
             }
             consoleCanvas.Display();
