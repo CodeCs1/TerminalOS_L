@@ -1,0 +1,4 @@
+print "Remoting QEMU port."
+target remote :1234
+
+print "You can now start debuging this OS now :)"

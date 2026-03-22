@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Cosmos.Sdk" Version="3.0.36" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GCCCompilerFlags>-g -fno-stack-protector -I./src/C/include</GCCCompilerFlags> <!-- Enable debug symbol for C-->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <GCCProject Include="./src/C/" />
+    <DirectPInvoke Include="ahci" />
+  </ItemGroup>
+
+
+  <!-- Core kernel packages -->
+  <ItemGroup>
+    <PackageReference Include="Cosmos.Kernel" Version="3.0.36" />
+    <PackageReference Include="Cosmos.Kernel.System" Version="3.0.36" />
+  </ItemGroup>
+
+</Project>

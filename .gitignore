@@ -1,0 +1,8 @@
+*.Identifier
+.vscode
+test.qcow2
+NuGet.Config
+*.log
+tool
+bin
+obj
