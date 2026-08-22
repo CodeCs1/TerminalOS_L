@@ -7,28 +7,29 @@
 This branch is only compatible with Cosmos Gen3 version
 
 > [!NOTE]
-> This should be worked on all PC platform
+> This ONLY work for BIOS as UEFI cause Page Fault on RTC Initialize (Will be removed if fixed)
 
 ## Requirement
 1. Latest version of dotnet 
 2. Cosmos C# Gen 3
 
 ## Compile project
-> Compiling this by typing this command to Terminal.
+
+If you use `dotnet`, run:
 ```sh
-dotnet build
+$ dotnet build
 ```
-> Or if you're using Visual Studio, just click on Build -> Build Solution
+
+If you have install `cosmos` tool, run:
+```sh
+$ cosmos build
+```
+
+Or if you're using Visual Studio, just click on Build -> Build Solution (hasn't test yet)
 
 ## Road Map
-- [x] AHCI Driver Support.
-- [ ] A custom ATA PIO Driver.
-- [ ] MBR and GPT Partition table.
-- [ ] Ext2, FAT32 File System Support.
-- [ ] EXT3/EXT4, NTFS File System Support.
-- [ ] A VFS replacement.
-- [ ] A custom ATAPI Driver.<sup>CDRom driver</sup>
-- [ ] Use windows executable as main executable file (POSIX compatible)
+- [ ] EXT2/EXT3/EXT4, NTFS File System Support. (Changed since gen3 now support storage)
+- [ ] Use windows (coff/pe32+) executable as main executable file (POSIX compatible)
 - [ ] Floppy Disk Driver Support.
 - [ ] Intel High Definition Audio (IHDA).
 - [ ] VM Guest

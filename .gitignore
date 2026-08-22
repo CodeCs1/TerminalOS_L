@@ -6,3 +6,4 @@ NuGet.Config
 tool
 bin
 obj
+output*
