@@ -6,26 +6,25 @@
 
 This branch is only compatible with Cosmos Gen3 version
 
-> [!NOTE]
-> This ONLY work for BIOS as UEFI cause Page Fault on RTC Initialize (Will be removed if fixed)
-
 ## Requirement
 1. Latest version of dotnet 
 2. Cosmos C# Gen 3
 
-## Compile project
+## Compile
+
+In order to use the OS in UEFI, you need to build [nativeaot-patcher](https://github.com/valentinbreiz/nativeaot-patcher) from source and apply patch from `packages/no-efi-time.patch`. After that, you need to copy all nupkg files from `/path/to/nativeaot-patcher/artifacts/package/release` to `packages` folder. Finally, change the cosmos sdk version inside csproj to the compiled version.
+
+You can skip this step and delete `nuget.config` if you want BIOS only.
 
 If you use `dotnet`, run:
 ```sh
 $ dotnet build
 ```
 
-If you have install `cosmos` tool, run:
+If you have `Cosmos.Tools` installed and setting up correctly, run:
 ```sh
 $ cosmos build
 ```
-
-Or if you're using Visual Studio, just click on Build -> Build Solution (hasn't test yet)
 
 ## Road Map
 - [ ] EXT2/EXT3/EXT4, NTFS File System Support. (Changed since gen3 now support storage)

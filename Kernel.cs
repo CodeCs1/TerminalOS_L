@@ -3,6 +3,7 @@ using Cosmos.Kernel.System.Vfs;
 using Cosmos.Kernel.System.Filesystems.Fat;
 using Cosmos.Kernel.HAL.Vfs;
 using TerminalOS_Lgen3.Disk;
+using Cosmos.Kernel.Core.IO;
 
 namespace TerminalOS_Lgen3;
 
@@ -20,10 +21,6 @@ public class Kernel : Sys.Kernel
         fat.TryFormat(default, new FatFormatOptions { Type = FatType.Fat16 });
         VfsManager.RegisterFilesystem("ramfat", fat);
         Console.WriteLine($"{VfsManager.TryMount("ramfat", "", MountFlags.None, "/mnt", out _)}");
-        unsafe
-        {
-            Console.WriteLine($"Boot time: {DateTime.Today}");
-        }
     }
 
     protected override void Run()

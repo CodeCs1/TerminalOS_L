@@ -7,3 +7,4 @@ tool
 bin
 obj
 output*
+packages/*.nupkg
