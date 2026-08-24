@@ -1,0 +1,21 @@
+diff --git a/src/Cosmos.Kernel.HAL.X64/Devices/Clock/RTC.cs b/src/Cosmos.Kernel.HAL.X64/Devices/Clock/RTC.cs
+index 9d108ad..aa4f276 100644
+--- a/src/Cosmos.Kernel.HAL.X64/Devices/Clock/RTC.cs
++++ b/src/Cosmos.Kernel.HAL.X64/Devices/Clock/RTC.cs
+@@ -78,6 +78,7 @@ public class RTC : Device
+         // Capture current TSC as boot reference
+         BootTsc = X64CpuOps.ReadTSC();
+ 
++	/*
+         // Priority 1: EFI Runtime Services GetTime
+         if (EfiRtc.TryGetTime(out long efiTicks))
+         {
+@@ -86,7 +87,7 @@ public class RTC : Device
+             Serial.Write("[RTC] Initialized\n");
+             return;
+         }
+-
++	*/
+         // Priority 2: Limine boot time
+         if (Limine.BootTime.Response != null)
+         {
