@@ -3,7 +3,7 @@ using Cosmos.Kernel.System.Vfs;
 using Cosmos.Kernel.System.Filesystems.Fat;
 using Cosmos.Kernel.HAL.Vfs;
 using TerminalOS_Lgen3.Disk;
-using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.System.Graphics.Fonts;
 
 namespace TerminalOS_Lgen3;
 
@@ -19,13 +19,15 @@ public class Kernel : Sys.Kernel
         MemoryBlockDevice memoryBlockDevice = new("RAMDISK", 512, 65536);
         FatFilesystemType fat = new(memoryBlockDevice);
         fat.TryFormat(default, new FatFormatOptions { Type = FatType.Fat16 });
-        VfsManager.RegisterFilesystem("ramfat", fat);
-        Console.WriteLine($"{VfsManager.TryMount("ramfat", "", MountFlags.None, "/mnt", out _)}");
+        VfsManager.RegisterFilesystem("fat", fat);
+        Console.WriteLine($"{VfsManager.TryMount("fat", "", MountFlags.None, "/root", out _)}");
     }
 
     protected override void Run()
     {
-        Console.Write("# ");
-        Console.ReadLine();
+        Console.Write($"[{Path.Path.CurrentPath}] $ ");
+        string cmd = Console.ReadLine()!;
+        Shell.Shell s = new(cmd);
+        s.Execute();
     }
 }
