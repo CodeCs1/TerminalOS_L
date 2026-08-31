@@ -12,7 +12,7 @@ This branch is only compatible with Cosmos Gen3 version
 
 ## Compile
 
-In order to use the OS in UEFI, you need to build [nativeaot-patcher](https://github.com/valentinbreiz/nativeaot-patcher) from source and apply patch from `packages/no-efi-time.patch`. After that, you need to copy all nupkg files from `/path/to/nativeaot-patcher/artifacts/package/release` to `packages` folder. Finally, change the cosmos sdk version inside csproj to the compiled version.
+In order to use the OS in UEFI, you need to build [nativeaot-patcher](https://github.com/valentinbreiz/nativeaot-patcher) from source and apply patch from `packages/no-efi-time.patch`. And then copy all nupkg file from `artifact` folder to `packages` folder.
 
 You can skip this step and delete `nuget.config` if you want BIOS only.
 
