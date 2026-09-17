@@ -9,3 +9,5 @@ obj
 output*
 packages/*.nupkg
 .zed
+filesystem
+compile_flags.txt
