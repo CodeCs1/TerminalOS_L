@@ -1,4 +1,4 @@
-using Cosmos.Kernel.Core.IO;
+using Cosmos.Kernel.System.Diagnostics;
 using TerminalOS_Lgen3.Shell.BuiltinCmds;
 
 namespace TerminalOS_Lgen3.Shell {
@@ -31,6 +31,7 @@ namespace TerminalOS_Lgen3.Shell {
             new Ls(),
             new Mount(),
             new Lsblk(),
+            new Clear(),
         ];
 
         public void Execute()
@@ -41,12 +42,26 @@ namespace TerminalOS_Lgen3.Shell {
             {
                 if (cmd.CmdName == execute_cmd)
                 {
-                    Serial.Write($"[SHELL] Builtin Command exited with code: {cmd.Execute(Cmds[1..])}\n");
+                    Log.Write($"[SHELL] Builtin Command exited with code: {cmd.Execute(Cmds[1..])}\n");
                     notfound = false;
                     break;
                 }
             }
-            if (notfound) Console.WriteLine($"Command '{execute_cmd}' not found!");
+            if (notfound)
+            {
+                string f = Path.Path.Format(execute_cmd);
+                if (File.Exists(f)) {
+                    var elf = new Elf.Elf(f);
+                    if (!elf.ValidateHeader())
+                    {
+                        throw new Exception("Not a vaild Elf executable");
+                    }
+                    foreach (var s in elf.GetSegments()) {
+                        Log.Write($"{s.Name} - {s.Info}\n");
+                    }
+                } else
+                    throw new Exception($"Command {execute_cmd} not found");
+            }
         }
     }
 }
