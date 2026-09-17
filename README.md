@@ -11,11 +11,6 @@ This branch is only compatible with Cosmos Gen3 version
 2. Cosmos C# Gen 3
 
 ## Compile
-
-In order to use the OS in UEFI, you need to build [nativeaot-patcher](https://github.com/valentinbreiz/nativeaot-patcher) from source and apply patch from `packages/no-efi-time.patch`. And then copy all nupkg file from `artifact` folder to `packages` folder.
-
-You can skip this step and delete `nuget.config` if you want BIOS only.
-
 If you use `dotnet`, run:
 ```sh
 $ dotnet build
@@ -28,7 +23,8 @@ $ cosmos build
 
 ## Road Map
 - [ ] EXT2/EXT3/EXT4, NTFS File System Support. (Changed since gen3 now support storage)
-- [ ] Use windows (coff/pe32+) executable as main executable file (POSIX compatible)
+- [ ] Support syscall stuff (be able to jump into Ring3 (user mode))
+- [ ] Use Elf executable as main executable file.
 - [ ] Floppy Disk Driver Support.
 - [ ] Intel High Definition Audio (IHDA).
 - [ ] VM Guest
