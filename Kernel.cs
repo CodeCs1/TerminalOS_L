@@ -9,6 +9,8 @@ using System.Formats.Tar;
 using Cosmos.Kernel.System.Graphics;
 using System.Runtime.InteropServices;
 using Cosmos.Kernel.System.Diagnostics;
+using Cosmos.Kernel.System.Graphics.Fonts;
+using System.Drawing;
 
 namespace TerminalOS_Lgen3;
 
@@ -69,9 +71,20 @@ public partial class Kernel : Sys.Kernel
                     Console.WriteLine("OK");
                 }
             }
+            Console.WriteLine("[*] Changing font...");
+            try
+            {
+                TrueTypeFont ttf = new("/root/etc/fonts/unifont-18.0.01.ttf");
+                KernelConsole.Default!.Font = ttf;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Cannot load font: " + ex);
+            }
+
             var canvas = Canvas.GetFullScreen();
-            var png = new Png("/root/etc/renewa.png");
-            canvas.DrawImage(png, canvas.Width - ((int)png.Width / 10), 0, (int)png.Width / 10, (int)png.Height / 10);
+            var png = new Png("/root/etc/img.png");
+            canvas.DrawImage(png, canvas.Width - (png.Width/7), 0,png.Width/7, png.Height/7);
         }
     }
 
