@@ -1,4 +1,5 @@
 using TerminalOS_Lgen3.Shell.BuiltinCmds;
+using PathPrefix = TerminalOS_Lgen3.Path.Path;
 
 public class Ls : IBuiltinCmd
 {
@@ -11,14 +12,8 @@ public class Ls : IBuiltinCmd
         string[] files = Directory.GetFiles(path);
         string[] directories = Directory.GetDirectories(path);
 
-        foreach (string directory in directories)
-        {
-            Console.WriteLine(directory);
-        }
-        foreach (string file in files)
-        {
-            Console.WriteLine(file);
-        }
+        foreach (string directory in directories) Console.WriteLine(directory[PathPrefix.Root.Length..]);
+        foreach (string file in files) Console.WriteLine(file[PathPrefix.Root.Length..]);
 
         return 0;
     }

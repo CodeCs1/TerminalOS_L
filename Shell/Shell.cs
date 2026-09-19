@@ -36,6 +36,7 @@ namespace TerminalOS_Lgen3.Shell {
 
         public void Execute()
         {
+            if (Cmds[0] == "") return;
             string execute_cmd = Cmds[0];
             bool notfound = true;
             foreach (var cmd in builtinCmds)
@@ -50,6 +51,9 @@ namespace TerminalOS_Lgen3.Shell {
             if (notfound)
             {
                 string f = Path.Path.Format(execute_cmd);
+                if (Directory.Exists(f)) {
+                    throw new Exception($"{execute_cmd} is a folder");
+                }
                 if (File.Exists(f)) {
                     var elf = new Elf.Elf(f);
                     if (!elf.ValidateHeader())

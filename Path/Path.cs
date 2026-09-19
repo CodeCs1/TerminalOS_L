@@ -4,7 +4,11 @@ namespace TerminalOS_Lgen3.Path
 {
     public class Path
     {
-        private static string Root = "/root";
+        public static string Root
+        {
+            get;
+            private set;
+        } = "/root";
         public static string CurrentPath = "/";
         private static readonly string AbsolutePath = Root + CurrentPath;
         public static string Format(string path)
