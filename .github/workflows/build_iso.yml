@@ -1,0 +1,28 @@
+name: Build Iso
+run-name: Build ISO Image
+on: [push]
+jobs:
+  Build-ISO:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setting Dotnet Environment
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+
+      - name: Install Cosmos & tools
+        run: |-
+            dotnet tool install -g Cosmos.Tools
+            cosmos install -y
+
+      - name: Build Project
+        run: cosmos build
+
+      - name: Upload ISO to release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: terminalos-v${{env.VERSION}}
+          files: output-x64/TerminalOS_Lgen3.iso
+          token: ${{ secrets.GITHUB_TOKEN }}
