@@ -1,11 +1,10 @@
-using Cosmos.Kernel.Core.Memory;
-using Cosmos.Kernel.Core.X64;
-using Cosmos.Kernel.Core.X64.Bridge;
-using Cosmos.Kernel.Core.X64.Cpu;
+using System.Runtime.InteropServices;
 namespace TerminalOS_Lgen3.SystemKernel;
 
-public class UserMode {
-    public unsafe static void ToRing3() {
-
+public partial class UserMode {
+    [LibraryImport("*", EntryPoint = "jump2ring3")]
+    private static partial void JumpToRing3();
+    public static void ToRing3() {
+        JumpToRing3();
     }
 }
