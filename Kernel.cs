@@ -84,7 +84,9 @@ public partial class Kernel : Sys.Kernel
 
             var canvas = Canvas.GetFullScreen();
             var png = new Png("/root/etc/img.png");
-            canvas.DrawImage(png, canvas.Width - (png.Width/7), 0,png.Width/7, png.Height/7);
+            canvas.DrawImage(png, canvas.Width - (png.Width / 7), 0, png.Width / 7, png.Height / 7);
+            Console.WriteLine("[*] Changing to Ring3...");
+            UserMode.ToRing3();
         }
     }
 
