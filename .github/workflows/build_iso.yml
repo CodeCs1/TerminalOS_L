@@ -1,3 +1,7 @@
+
+permissions:
+  contents: write
+
 name: Build Iso
 run-name: Build ISO Image
 on: [push]
